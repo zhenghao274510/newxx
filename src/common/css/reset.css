@@ -1,0 +1,12 @@
+.van-tab--active{
+  color: #72D241 !important;
+}
+.van-button__text{
+  font-size: 15px;
+}
+.navigator-hover{
+  background-color:none;
+}
+page{
+  -webkit-overflow-scrolling: touch;
+}
