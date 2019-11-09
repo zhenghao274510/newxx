@@ -1,13 +1,5 @@
 <template>
   <div class="list">
-    <!-- <van-list
-      v-model="loading"
-      :finished="finished"
-      finished-text="没有更多了"
-      @load="beginLoading"
-      :offset="2"
-      :immediate-check="false"
-    > -->
       <ul class="list-box">
         <li v-for="(v,k) in recommendList" :key="k" @click.stop="detail(v.id)">
           <img :src="v.image" alt lazy-load />
@@ -32,7 +24,9 @@
           </div>
         </li>
       </ul>
-    <!-- </van-list> -->
+      <div class="loading" v-if="more">
+            <span>没有更多了</span>
+          </div>
   </div>
 </template>
 
@@ -44,10 +38,10 @@ export default {
     return {
       recommendList: [],
       page: 1,
-      loading: false,
-      finished: false,
+      more: false,
       cid: "",
-      id:''
+      id:'',
+      totalPage:1
     };
   },
   onLoad(options) {
@@ -60,6 +54,35 @@ export default {
   },
   mounted() {
   },
+     onShareAppMessage() {
+    return {
+      title: "山城乡鲜",
+      desc: "山城乡鲜是一个专注于健康食品，包括水果、蔬菜、肉类、特产、海鲜、无公害及高品质的有机农产品等优质生鲜食材采购，并配套新鲜物流的服务平台。",
+      path: ""  // 路径，传递参数到指定页面。
+    };
+  },
+   onReachBottom() {
+     console.log("触底 加载")
+      if (this.page >= this.totalPage) {
+        this.more = true;
+      } else {
+        this.page++;
+        let discountGoods = {
+          cmd: "discountGoods",
+          pageNow: this.page
+        };
+        Request.postRequest(discountGoods)
+          .then(res => {
+            if (res.result == 0) {
+              for (var i in res.discount) {
+                this.recommendList.push(res.discount[i]);
+              }
+            }
+            console.log(this.recommendList);
+          })
+          .catch(res => {});
+      }
+    },
   methods: {
     detail(id) {
       console.log(id);
@@ -97,33 +120,14 @@ export default {
           if (res.result == 0) {
             this.totalPage = res.totalPage;
             this.recommendList = res.discount;
+            if(this.totalPage==this.page){
+              this.more=true;
+            }
           }
         })
         .catch(res => {});
     },
-    beginLoading() {
-      if (this.page >= this.totalPage) {
-        this.finished = true;
-        this.loading = false;
-      } else {
-        this.page++;
-        let discountGoods = {
-          cmd: "discountGoods",
-          pageNow: this.page
-        };
-        Request.postRequest(discountGoods)
-          .then(res => {
-            if (res.data.result == 0) {
-              for (var i in res.discount) {
-                this.recommendList.push(res.discount[i]);
-              }
-            }
-            console.log(this.recommendList);
-          })
-          .catch(res => {});
-        this.loading = false;
-      }
-    }
+   
   }
 };
 </script>

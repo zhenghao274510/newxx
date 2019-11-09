@@ -1,7 +1,7 @@
 <template>
   <!-- 收藏店铺 -->
   <div class="list">
-    <ul>
+    <ul v-if="dataList.length!=0">
       <li v-for="(v,k) in dataList" :key="k" @click.stop="goShopx(v.sid,k)">
         <img :src="v.image" alt lazy-load />
         <div class="list-shop">
@@ -31,7 +31,9 @@ export default {
     }
   },
   data() {
-    return {};
+    return {
+      cid:''
+    };
   },
   components: {},
   onLoad() {
@@ -53,7 +55,8 @@ export default {
           console.log(res);
           if (res.result == 0) {
             wx.showToast({
-              title: "取消收藏商店成功"
+              title: "取消收藏成功",
+              icon:"none"
             });
             this.dataList.splice(k, 1);
           }
@@ -80,7 +83,7 @@ export default {
 
     li {
       width: 100%;
-      padding: 0.4rem;
+      padding: 0.15rem;
       box-sizing: border-box;
       border-bottom: 1px solid #eee;
       display: flex;
@@ -88,9 +91,9 @@ export default {
       justify-content: space-between;
 
       .quxiao {
-        margin-top: 55px;
-        height: 35px;
-        line-height: 35px;
+        // margin-top: 45px;
+        height: 30px;
+        line-height: 30px;
         padding: 0 0.2rem;
         color: #808181;
         font-size:12px;
@@ -125,8 +128,8 @@ export default {
         .shop-star {
           width: 100%;
           display: flex;
-          align-items : center;
-          justify-content:space-between;
+          align-items:center;
+          // justify-content:space-between;
           color: #333;
 
           span {

@@ -4,12 +4,13 @@ Vue.use(Vuex)
 
 export default new Vuex.Store({
     state: {
-        count: 0
+        count: 0,
+        ordertarba:3
       }, 
       //  修改 全局数据
       mutations: {    
-        increment: (state) => {
-          state.count += 1
+        increment: (state,val) => {
+          state.ordertarba= val
         },    
         decrement: (state) => {
           state.count -= 1

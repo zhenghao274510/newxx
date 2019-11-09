@@ -7,7 +7,7 @@ const http = {
     })
     return new Promise((resolve, reject) => {
       wx.request({
-        url: encodeURI("http://39.108.249.42/api/customer/services?json=" + JSON.stringify(data)),
+        url: encodeURI("https://m.scxxsx.com/api/customer/services?json=" + JSON.stringify(data)),
         method: method, // OPTIONS, GET, HEAD, POST, PUT, DELETE, TRACE, CONNECT
         header: {
           //   'X-Bmob-Application-Id': bmobConfig.applicationId,
@@ -43,7 +43,7 @@ const http = {
   postCommon(data = {}, method = "get") {
     return new Promise((resolve, reject) => {
       wx.request({
-        url: encodeURI("http://39.108.249.42/api/customer/services?json=" + JSON.stringify(data)),
+        url: encodeURI("https://m.scxxsx.com/api/common/services?json=" + JSON.stringify(data)),
         method: method, // OPTIONS, GET, HEAD, POST, PUT, DELETE, TRACE, CONNECT
         header: {
           //   'X-Bmob-Application-Id': bmobConfig.applicationId,
@@ -79,12 +79,13 @@ const http = {
     })
     return new Promise((resolve, reject) => {
       wx.request({
-        url: encodeURI("http://39.108.249.42/api/customer/services?json=" + JSON.stringify(data)),
+        url: encodeURI("https://m.scxxsx.com/api/customer/services?json=" + JSON.stringify(data)),
         method: method, // OPTIONS, GET, HEAD, POST, PUT, DELETE, TRACE, CONNECT
         header: {
           //   'X-Bmob-Application-Id': bmobConfig.applicationId,
           //   'X-Bmob-REST-API-Key': bmobConfig.restApiKey,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json;charset=UTF-8',
+          // 'content-type': 'application/x-www-form-urlencoded' // 默认值
         }, // 设置请求的 header
         success: function (res) {
           // success
@@ -103,14 +104,46 @@ const http = {
       })
     })
   },
-  postFile(data = {}, method = 'post') {
+  post(data = {}, method = "post") {
+    wx.showLoading({
+      title: '加载中',
+    })
     return new Promise((resolve, reject) => {
       wx.request({
-        url: encodeURI('http://39.108.249.42/api/uploadFile'),
-        method: method,
-        data: data,
-        headers: {
+        url: encodeURI("https://m.scxxsx.com/api/customer/services?json=" + JSON.stringify(data)),
+        method: method, // OPTIONS, GET, HEAD, POST, PUT, DELETE, TRACE, CONNECT
+        header: {
+          //   'X-Bmob-Application-Id': bmobConfig.applicationId,
+          //   'X-Bmob-REST-API-Key': bmobConfig.restApiKey,
           'Content-Type': 'application/json'
+        }, // 设置请求的 header
+        success: function (res) {
+          // success
+          wx.hideLoading();
+          resolve(res);
+        },
+        fail: function (error) {
+          // fail
+          wx.hideLoading();
+          reject(error);
+        },
+        complete: function () {
+          // complete
+          wx.hideLoading();
+        }
+      })
+    })
+  },
+  postFile(data, method = 'post') {
+   
+    return new Promise((resolve, reject) => {
+      wx.uploadFile({
+        url: encodeURI('https://m.scxxsx.com/api/uploadFile'),
+        filePath: data.path,
+        name: 'file',
+        method: method,
+        headers: {
+          'Content-Type': 'multipart/form-data;'
         },
         success: function (res) {
           // success
@@ -122,13 +155,14 @@ const http = {
         },
         complete: function () {
           // complete
-          wx.hideLoading();
         }
 
       })
 
     })
   }
+
+
 
 
 }

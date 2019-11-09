@@ -3,7 +3,7 @@
     <!-- <main-header :text="text" @back="back"></main-header> -->
     <div class="box">
       <van-tabs
-        v-model="active"
+        :active="active"
         @click="shopper"
         color="rgb(114,209,65)"
         title-active-color="rgb(114,209,65)"
@@ -12,215 +12,113 @@
         @change="shopper"
       >
         <van-tab title="客户已下单" id="0">
-          <!-- <van-list
-            v-model="loading"
-            :finished="finished"
-            finished-text="没有更多了"
-            @load="beginLoading"
-            :offset="10"
-          >-->
-          <!-- <van-pull-refresh v-model="isLoading" @refresh="onRefresh"> -->
           <ul>
-            <li v-for="(v,k) in list" :key="k" @click="order(v)">
+            <li v-for="(v,k) in list" :key="k" @click.stop="order(v)">
               <h3>
                 <span>订单编号：{{v.id}}</span>
-                <span style="color: red;" v-if="v.status == 0">待付款</span>
-                <span v-if="v.status == 1">准备出仓</span>
-                <span v-if="v.status == 2">待发货</span>
-                <span v-if="v.status == 3">待收货</span>
-                <span v-if="v.status == 4">待评价</span>
-                <span v-if="v.status == 5">已评价</span>
-                <span v-if="v.status == 6">已取消</span>
-                <span v-if="v.status == 7">待退款</span>
-                <span v-if="v.status == 8">已退款</span>
-                <span v-if="v.status == 9">拒绝退款</span>
+                <!-- <span style="color: red;" v-if="v.state2 == 0">待付款</span> -->
+                <!-- <span v-if="v.state2 == 1">准备出仓</span> -->
+                <span v-if="v.state2 == 2" style="color: red;">待发货</span>
+                <span v-if="v.state2 == 3" style="color: red;">待收货</span>
+                <span v-if="v.state2 == 4" style="color: red;">待取货</span>
+                <span v-if="v.state2 == 6">已取消</span>
+                <span v-if="v.state2 == 7">待退款</span>
+                <span v-if="v.state2 == 8">已退款</span>
+                <span v-if="v.state2 == 9">拒绝退款</span>
               </h3>
-              <!--0待付款 1待处理 2待发货 3待收货 4待评价 5已评价 6已取消 7待退款 8已退款 9拒绝退款-->
+          <!-- 2待发货 3已发货 4待取货 5已完成  6已取消 7待退款 8已退款 9拒绝退款 -->
               <div class="wrapper">
-                <img :src="v.simage" alt lazy-load />
+                <img :src="v.productImage" alt lazy-load />
                 <div class="s_right">
                   <div class="s_top">
-                    <span>{{v.sname}}</span>
+                    <span>{{v.productName}}</span>
                   </div>
-                  <p>{{v.createTime}}</p>
-                  <div class="s_price">
-                    <span style="color:#999;">共计{{v.number}}件商品</span>
-                    <span>￥{{v.finalPay}}元</span>
-                  </div>
+                  <!-- <p>{{v.}}</p> -->
+                  <p>{{v.skuName}}</p>
+                  <div class="s_price"></div>
+                </div>
+                <div class="pin_price">
+                  <span style="color:#999;">X{{v.number}}</span>
                 </div>
               </div>
-              <div class="pay" v-if="v.status == 0">
-                <span>24小时后自动取消订单</span>
-                <div @click="zhi(v)">去支付</div>
-              </div>
-              <div class="pay" v-if="v.status == 3">
+              <div class="pay" v-if="v.state2 == 3">
                 <span>15天后自动确认收货</span>
-                <div style="padding: 0 0.1rem;" @click="queshou(v)">确认收货</div>
-              </div>
-              <div class="comment" v-if="v.status == 4">
-                <div style="padding: 0 0.2rem;" @click="ping(v)">评价</div>
+                <div style="padding: 0 0.1rem;" @click.stop="queshou(v)">确认收货</div>
               </div>
             </li>
           </ul>
-          <!-- </van-pull-refresh> -->
-          <!-- </van-list> -->
         </van-tab>
         <van-tab title="商家已发货" id="1">
-          <!-- <van-list
-            v-model="loading"
-            :finished="finished"
-            finished-text="没有更多了"
-            @load="beginLoading"
-            :offset="10"
-          >-->
-          <!-- <van-pull-refresh v-model="isLoading" @refresh="onRefresh"> -->
           <ul>
-            <li v-for="(v,k) in list" :key="k" @click="order(v)">
+            <li v-for="(v,k) in list" :key="k" @click.stop="order(v)">
               <h3>
                 <span>订单编号：{{v.id}}</span>
-                <span style="color: red;" v-if="v.status == 0">待付款</span>
-                <span v-if="v.status == 1">准备出仓</span>
-                <span v-if="v.status == 2">待发货</span>
-                <span v-if="v.status == 3">待收货</span>
-                <span v-if="v.status == 4">待评价</span>
-                <span v-if="v.status == 5">已评价</span>
-                <span v-if="v.status == 6">已取消</span>
-                <span v-if="v.status == 7">待退款</span>
-                <span v-if="v.status == 8">已退款</span>
-                <span v-if="v.status == 9">拒绝退款</span>
+                <!-- <span style="color: red;" v-if="v.state2 == 0">待付款</span>
+                <span v-if="v.state2 == 1">准备出仓</span> -->
+                <span v-if="v.state2 == 2" style="color: red;">待发货</span>
+                <span v-if="v.state2 == 3" style="color: red;">待收货</span>
+                <span v-if="v.state2 == 4" style="color: red;">待评价</span>
+                <span v-if="v.state2 == 6">已取消</span>
+                <span v-if="v.state2 == 7">待退款</span>
+                <span v-if="v.state2 == 8">已退款</span>
+                <span v-if="v.state2 == 9">拒绝退款</span>
               </h3>
               <!--0待付款 1待处理 2待发货 3待收货 4待评价 5已评价 6已取消 7待退款 8已退款 9拒绝退款-->
               <div class="wrapper">
-                <img :src="v.simage" alt lazy-load />
+                <img :src="v.productImage" alt lazy-load />
                 <div class="s_right">
                   <div class="s_top">
-                    <span>{{v.sname}}</span>
+                    <span>{{v.productName}}</span>
                   </div>
-                  <p>{{v.createTime}}</p>
-                  <div class="s_price">
-                    <span style="color:#999;">共计{{v.number}}件商品</span>
-                    <span>￥{{v.finalPay}}元</span>
-                  </div>
+                  <!-- <p>{{v.}}</p> -->
+                  <p>{{v.skuName}}</p>
+                  <div class="s_price"></div>
+                </div>
+                <div class="pin_price" >
+                  <span style="color:#999;">X{{v.number}}</span>
                 </div>
               </div>
-              <div class="pay" v-if="v.status == 0">
-                <span>24小时后自动取消订单</span>
-                <div @click="zhi(v)">去支付</div>
-              </div>
-              <div class="pay" v-if="v.status == 3">
+              <div class="pay" v-if="v.state2 == 3">
                 <span>15天后自动确认收货</span>
-                <div style="padding: 0 0.1rem;" @click="queshou(v)">确认收货</div>
-              </div>
-              <div class="comment" v-if="v.status == 4">
-                <div style="padding: 0 0.2rem;" @click="ping(v)">评价</div>
+                <div style="padding: 0 0.1rem;" @click.stop="queshou(v)">确认收货</div>
               </div>
             </li>
           </ul>
-          <!-- </van-pull-refresh> -->
-          <!-- </van-list> -->
         </van-tab>
-        <!-- <van-tab title="待付款" v-else> -->
-        <!-- <van-list
-            v-model="loading"
-            :finished="finished"
-            finished-text="没有更多了"
-            @load="beginLoading"
-            :offset="10"
-        >-->
-        <!-- <van-pull-refresh v-model="isLoading" @refresh="onRefresh"> -->
-        <!-- <ul>
-            <li v-for="(v,k) in list" :key="k" @click="order(v)">
-              <h3>
-                <span>订单编号：{{v.id}}</span>
-                <span style="color: red;" v-if="v.status == 0">待付款</span>
-                <span v-if="v.status == 1">准备出仓</span>
-                <span v-if="v.status == 2">待发货</span>
-                <span v-if="v.status == 3">待收货</span>
-                <span v-if="v.status == 4">待评价</span>
-                <span v-if="v.status == 5">已评价</span>
-                <span v-if="v.status == 6">已取消</span>
-                <span v-if="v.status == 7">待退款</span>
-                <span v-if="v.status == 8">已退款</span>
-                <span v-if="v.status == 9">拒绝退款</span>
-              </h3>
-
-       <div class="wrapper">
-                <img :src="v.simage" lazy-load alt />
-                <div class="s_right">
-                  <div class="s_top">
-                    <span>{{v.sname}}</span>
-                  </div>
-                  <p>{{v.createTime}}</p>
-                  <div class="s_price">
-                    <span style="color:#999;">共计{{v.number}}件商品</span>
-                    <span>￥{{v.finalPay}}元</span>
-                  </div>
-                </div>
-              </div>
-              <div class="pay" v-if="v.status == 0">
-                <span>24小时后自动取消订单</span>
-                <div @click="zhi(v)">去支付</div>
-              </div>
-              <div class="pay" v-if="v.status == 3">
-                <span>15天后自动确认收货</span>
-                <div style="padding: 0 0.1rem;" @click="queshou(v)">确认收货</div>
-              </div>
-              <div class="comment" v-if="v.status == 4">
-                <div style="padding: 0 0.2rem;" @click="ping(v)">评价</div>
-              </div>
-        </li>-->
-        <!-- </ul>  -->
-        <!-- </van-pull-refresh> -->
-        <!-- </van-list> -->
-        <!-- </van-tab> -->
         <van-tab title="客户待取货" id="2">
-          <!-- <van-list
-            v-model="loading"
-            :finished="finished"
-            finished-text="没有更多了"
-            @load="beginLoading"
-            :offset="10"
-          >-->
-          <!-- <van-pull-refresh v-model="isLoading" @refresh="onRefresh"> -->
           <ul>
-            <li v-for="(v,k) in list" :key="k" @click="order(v)">
+            <li v-for="(v,k) in list" :key="k" @click.stop="order(v)">
               <h3>
                 <span>订单编号：{{v.id}}</span>
-                <span style="color: red;" v-if="v.status == 0">待付款</span>
-                <span v-if="v.status == 1">准备出仓</span>
-                <span v-if="v.status == 2">待发货</span>
-                <span v-if="v.status == 3">待收货</span>
-                <span v-if="v.status == 4">待评价</span>
-                <span v-if="v.status == 5">已评价</span>
-                <span v-if="v.status == 6">已取消</span>
-                <span v-if="v.status == 7">待退款</span>
-                <span v-if="v.status == 8">已退款</span>
-                <span v-if="v.status == 9">拒绝退款</span>
+                <!-- <span style="color: red;" v-if="v.state2 == 0">拼团成功</span> -->
+                <!-- <span v-if="v.state2 == 1">1已发货</span> -->
+                <span v-if="v.state2 == 2" style="color: red;">待发货</span>
+                <span v-if="v.state2 == 3" style="color: red;">已发货</span>
+                <span v-if="v.state2 == 4" style="color: red;">待取货</span>
+                <span v-if="v.state2 == 5" style="color: red;">已完成</span>
+                <span v-if="v.state2 == 6">已取消</span>
+                <span v-if="v.state2 == 7">待退款</span>
+                <span v-if="v.state2 == 8">已退款</span>
+                <span v-if="v.state2 == 9">拒绝退款</span>
               </h3>
-              <!--0待付款 1待处理 2待发货 3待收货 4待评价 5已评价 6已取消 7待退款 8已退款 9拒绝退款-->
+              <!-- 0客户已下单 1已发货 2待取货 3已完成 4退款售后 -->
+              <!-- //2待发货 3已发货 4待取货 5已完成  6已取消 7待退款 8已退款 9拒绝退款 -->
               <div class="wrapper">
-                <img :src="v.simage" lazy-load alt />
+                <img :src="v.productImage" lazy-load alt />
                 <div class="s_right">
                   <div class="s_top">
-                    <span>{{v.sname}}</span>
+                    <span>{{v.productName}}</span>
                   </div>
-                  <p>{{v.createTime}}</p>
-                  <div class="s_price">
-                    <span style="color:#999;">共计{{v.number}}件商品</span>
-                    <span>￥{{v.finalPay}}元</span>
-                  </div>
+                  <p>{{v.skuName}}</p>
+                  <div class="s_price"></div>
+                </div>
+                <div class="pin_price">
+                  <span style="color:#999;">X{{v.number}}</span>
                 </div>
               </div>
-              <div class="pay" v-if="v.status == 0">
-                <span>24小时后自动取消订单</span>
-                <div @click="zhi(v)">去支付</div>
-              </div>
-              <div class="pay" v-if="v.status == 3">
+              <div class="pay" v-if="v.state2 == 3">
                 <span>15天后自动确认收货</span>
-                <div style="padding: 0 0.1rem;" @click="queshou(v)">确认收货</div>
-              </div>
-              <div class="comment" v-if="v.status == 4">
-                <div style="padding: 0 0.2rem;" @click="ping(v)">评价</div>
+                <div style="padding: 0 0.1rem;" @click.stop="queshou(v)">确认收货</div>
               </div>
             </li>
           </ul>
@@ -237,44 +135,39 @@
           >-->
           <!-- <van-pull-refresh v-model="isLoading" @refresh="onRefresh"> -->
           <ul>
-            <li v-for="(v,k) in list" :key="k" @click="order(v)">
+            <li v-for="(v,k) in list" :key="k" @click.stop="order(v)">
               <h3>
                 <span>订单编号：{{v.id}}</span>
-                <span style="color: red;" v-if="v.status == 0">待付款</span>
-                <span v-if="v.status == 1">准备出仓</span>
-                <span v-if="v.status == 2">待发货</span>
-                <span v-if="v.status == 3">待收货</span>
-                <span v-if="v.status == 4">待评价</span>
-                <span v-if="v.status == 5">已评价</span>
-                <span v-if="v.status == 6">已取消</span>
-                <span v-if="v.status == 7">待退款</span>
-                <span v-if="v.status == 8">已退款</span>
-                <span v-if="v.status == 9">拒绝退款</span>
+                <!-- <span style="color: red;" v-if="v.state2 == 0">拼团成功</span> -->
+                <!-- <span v-if="v.state2 == 1">已发货</span> -->
+                <span v-if="v.state2 == 2" style="color: red;">待发货</span>
+                <span v-if="v.state2 == 3" style="color: red;">已发货</span>
+                <span v-if="v.state2 == 4" style="color: red;">待取货</span>
+                <span v-if="v.state2 == 5">已完成</span>
+                <span v-if="v.state2 == 6">已取消</span>
+                <span v-if="v.state2 == 7">待退款</span>
+                <span v-if="v.state2 == 8">已退款</span>
+                <span v-if="v.state2 == 9">拒绝退款</span>
               </h3>
-              <!--0待付款 1待处理 2待发货 3待收货 4待评价 5已评价 6已取消 7待退款 8已退款 9拒绝退款-->
+              <!-- 2待发货 3已发货 4待取货 5已完成  6已取消 7待退款 8已退款 9拒绝退款 -->
               <div class="wrapper">
-                <img :src="v.simage" lazy-load alt />
+                <img :src="v.productImage" lazy-load alt />
                 <div class="s_right">
                   <div class="s_top">
-                    <span>{{v.sname}}</span>
+                    <span>{{v.productName}}</span>
                   </div>
-                  <p>{{v.createTime}}</p>
-                  <div class="s_price">
-                    <span style="color:#999;">共计{{v.number}}件商品</span>
-                    <span>￥{{v.finalPay}}元</span>
-                  </div>
+                  <!-- <p>{{v.}}</p> -->
+                  <p>{{v.skuName}}</p>
+                  <div class="s_price"></div>
+                </div>
+                <div class="pin_price">
+                  <span style="color:#999;">X{{v.number}}</span>
                 </div>
               </div>
-              <div class="pay" v-if="v.status == 0">
-                <span>24小时后自动取消订单</span>
-                <div @click="order(v)">去支付</div>
-              </div>
-              <div class="pay" v-if="v.status == 3">
-                <span>15天后自动确认收货</span>
-                <div style="padding: 0 0.1rem;" @click="queshou(v)">确认收货</div>
-              </div>
-              <div class="comment" v-if="v.status == 4">
-                <div style="padding: 0 0.2rem;" @click="ping(v)">评价</div>
+              <div class="pay" v-if="v.state2 == 4">
+                <p>共计:￥{{v.finalPay}}元</p>
+                <!-- <span>15天后自动确认收货</span> -->
+                <div style="padding: 0 0.1rem;" @click.stop="queshou(v)">确认收货</div>
               </div>
             </li>
           </ul>
@@ -282,6 +175,9 @@
           <!-- </van-list> -->
         </van-tab>
       </van-tabs>
+      <div class="loading" v-if="more">
+        <span>没有更多了</span>
+      </div>
     </div>
   </div>
 </template>
@@ -299,65 +195,41 @@ export default {
       // pendPayNumber: "", //待付款
       // pendReceiveNumber: "", //待收货
       // pendSendNumber: "", //待发货
-      cid: ""
+      cid: "",
+      more: false,
+      leaderid: ""
     };
   },
-  components: {
-  },
+  components: {},
   onLoad(options) {
-    this.active =options.id;
+    wx.setNavigationBarTitle({
+      title: "社区订单"
+    });
+    this.active = options.id;
     console.log(this.active);
-    this.cid = JSON.parse(wx.getStorageSync("user")).cid;
+    this.leaderid = JSON.parse(wx.getStorageSync("leaderInfo")).leaderid;
+  },
+  onShow() {
+    this.list = [];
     this.myOrder(this.active, this.page);
   },
   mounted() {},
+  onReachBottom() {
+    console.log("到底了");
+    // let self=this;
+    console.log(this.page, this.totalPage);
+    if (this.page < this.totalPage) {
+      this.page += 1;
+      this.myOrder(this.active, this.page);
+    } else {
+      this.more = true;
+    }
+  },
   methods: {
-    // gouserInfo() {
-    //   let goCarlist = {
-    //     cmd: "myInfo",
-    //     cid: this.cid
-    //   };
-    //   Request.postRequest(goCarlist)
-    //     .then(res => {
-    //       console.log(res);
-    //       if (res.result == 0) {
-    //         this.pendEvaluateNumber = res.pendEvaluateNumber; //待评价
-    //         this.pendPayNumber = res.pendPayNumber; //待付款
-    //         this.pendReceiveNumber = res.pendReceiveNumber; //待收货
-    //         this.pendSendNumber = res.pendSendNumber; //待发货
-    //         console.log(this.pendPayNumber);
-    //       }
-    //     })
-    //     .catch(res => {});
-    // },
-    //下拉刷新
-    // onRefresh() {
-    //   setTimeout(() => {
-    //     this.$toast("刷新成功");
-    //     this.myOrder(this.active, 1);
-    //     this.gouserInfo();
-    //     this.isLoading = false;
-    //   }, 500);
-    // },
-    beginLoading() {
-      // 异步更新数据
-      // setTimeout(() => {
-      //   if (this.page < this.totalPage) {
-      //     this.page++;
-      //     this.myOrders(this.active, this.page);
-      //     this.loading = false;
-      //   } else {
-      //     this.loading = false;
-      //   }
-      // }, 5000);
-    },
-    back() {
-      this.$router.push("/person");
-    },
     myOrder(status, page) {
       let myOrder = {
-        cmd: "myOrder",
-        cid: this.cid,
+        cmd: "leardOrderList",
+        leaderid: this.leaderid,
         pageNow: page,
         status: this.active
       };
@@ -365,57 +237,15 @@ export default {
       Request.postRequest(myOrder)
         .then(res => {
           console.log(res);
-          this.list = [];
           if (res.result == 0) {
-            this.list = res.dataList;
             this.totalPage = res.totalPage;
-            this.finished = true;
-
-            this.gouserInfo();
-            if (page < this.totalPage) {
-              page++;
-              this.myOrders(this.active, page);
-              this.loading = false;
-            } else {
-              this.loading = false;
+            for (let i in res.dataList) {
+              this.list.push(res.dataList[i]);
             }
-          } 
-        })
-        .catch(res => {});
-    },
-    myOrders(status, page) {
-      console.log(status);
-      let myOrder = {
-        cmd: "myOrder",
-        cid: this.cid,
-        pageNow: page,
-        status: status
-      };
-      console.log(myOrder);
-      Request.postRequest(myOrder)
-        .then(res => {
-          // console.log(res);
-          if (res.result == 0) {
-            for (var i in res.dataList) {
-              if (this.active == 0) {
-                this.list.push(res.dataList[i]);
-              } else {
-                if (res.dataList[i].status == this.active && this.active != 0) {
-                  this.list.push(res.dataList[i]);
-                }
-              }
+            if (res.dataList.length == 0) {
+              this.more = true;
             }
-            console.log(this.list);
-            this.totalPage = res.totalPage;
-            this.finished = true;
-            if (page < this.totalPage) {
-              page++;
-              this.myOrders(this.active, page);
-              this.loading = false;
-            } else {
-              this.loading = false;
-            }
-          } 
+          }
         })
         .catch(res => {});
     },
@@ -431,10 +261,11 @@ export default {
     },
     //详情
     order(v) {
-    console.log(v)
-    wx.navigateTo({
-      url:'/pages/order/orderdetials?id='+v.id
-    })
+      console.log(v);
+      let obj={direct:1,id:v.id}
+      wx.navigateTo({
+        url: "/pages/order/shequorderdetial?id=" + JSON.stringify(obj)
+      });
       // this.$router.push({
       //   path: "/pages/order/order",
       //   query: {
@@ -445,54 +276,62 @@ export default {
     },
     //收货
     queshou(v) {
-      wx.showModal({
-        title: "确认收货",
-        content: "是否确认收货？",
-        showCancel: true,
-        cancelText: "取消",
-        cancelColor: "#000000",
-        confirmText: "确定",
-        confirmColor: "#3CC51F",
-        success: result => {
-          if (result.confirm) {
-            let orderDetail = {
-              cmd: "confirmReceive",
-              id: v.id
-            };
-            Request.postRequest(orderDetail)
-              .then(res => {
-                console.log(res);
-                if (res.result == 0) {
-                  this.myOrder(this.active, this.page);
-                  // this.gouserInfo();
-                }
-              })
-              .catch(res => {});
+      let orderDetail = {
+        cmd: "leaderConfirmReceive",
+        orderId: v.id
+      };
+      console.log(orderDetail)
+      Request.postRequest(orderDetail)
+        .then(res => {
+          console.log(res);
+          if (res.result == 0) {
+            this.list=[];
+            this.myOrder(this.active, this.page);
+            // this.gouserInfo();
           }
-        }
-      });
+        })
+        .catch(res => {});
     },
-    //评价
-    ping(v) {
-      this.$router.push({
-        name: "comment",
-        params: {
-          ids: v.id
-        }
-      });
-    }
   }
 };
 </script>
 <style scoped lang="stylus" rel="stylesheet/stylus">
-.van-tabs__wrap{
+.van-tabs__wrap {
   position: fixed !important;
-  top:0 !important;
+  top: 0 !important;
 }
+
 .contain {
   width: 100%;
   height: 100%;
 }
+  .tuanpay {
+        overflow: hidden;
+        display: block;
+        width: 100%;
+        border-top: 1px solid #eee;
+        padding: 15px 0;
+
+        p {
+          text-align: right;
+          font-size: 13px;
+          line-height: 25px;
+          font-weight: bold;
+        }
+
+        div {
+          width: 1.7rem;
+          height: 0.6rem;
+          line-height: 0.6rem;
+          border-radius: 6px;
+          background: #73d242;
+          text-align: center;
+          font-size: 14px;
+          color: #fff;
+          float: right;
+          margin-top: 15px;
+        }
+      }
 
 .van-tab__pane {
   min-height: 667px;

@@ -2,18 +2,18 @@
   <div class="list">
     <!-- <main-header :text="text" @back="back"></main-header> -->
     <div class="box" v-if="ayin==false">
-      <van-radio-group v-model="choiced" @change="radiol">
-        <div class="a_list" v-for="(item,index) in dataList[0]" :key="index">
+      <van-radio-group :value="radio" @change="radiol">
+        <div class="a_list" v-for="(item,index) in dataList" :key="index">
           <div class="user">
             <span>{{item.receiverName}}</span>
-            <span style="margin-left: 0.3rem;">{{item.mobile|hideMiddle}}</span>
+            <span style="margin-left: 0.3rem;">{{item.mobile}}</span>
           </div>
-          <p>{{item.province}}{{item.city}}{{item.town}}{{item.addr}}</p>
+          <p>{{item.addr}}</p>
           <div class="choice">
-            <van-radio :name="item.id" checked-color="#07c160">设为默认</van-radio>
+            <van-radio :name="index" checked-color="#07c160">设为默认</van-radio>
             <div class="editor">
-              <div class="del" @click.stop="deladdress(item.id,index)">删除</div>
-              <div class="modify" @click.stop="updateAddress(item)">编辑</div>
+              <div class="del" @click.stop="deladdress(item.id)">删除</div>
+              <div class="modify" @click.stop="updateAddress(index)">编辑</div>
             </div>
           </div>
         </div>
@@ -23,6 +23,10 @@
     <div class="box" v-else>
       <div class="wuadd">暂无收货地址</div>
       <div class="add" @click.stop="goAdd">添加地址</div>
+    </div>
+
+    <div class="loading" v-if="more" style="height:50px;">
+      <span>没有更多了</span>
     </div>
   </div>
 </template>
@@ -39,23 +43,41 @@ export default {
       dataList: [],
       ayin: false,
       choiced: "",
-      type: 0,
-      cid: ""
+      cid: "",
+      resultList: "",
+      totalPage: 1,
+      more: false
     };
   },
-  mounted() {
+  onLoad() {
+    wx.setNavigationBarTitle({
+      title: "地址管理"
+    });
     this.cid = JSON.parse(wx.getStorageSync("user")).cid;
+  },
+  onShow() {
+    // wx.removeStorageSync("adduser");
+    this.dataList = [];
     if (this.cid != "") {
       this.address();
     }
   },
+  onReachBottom() {
+    console.log("到底了");
+    // let self=this;
+    console.log(this.page, this.totalPage);
+    if (this.pageNow < this.totalPage) {
+      this.pageNow += 1;
+      this.address();
+    } else {
+      this.more = true;
+    }
+  },
   methods: {
-    radiol(id) {
-      if (this.type == 0) {
-        this.type = 1;
-        return false;
-      }
-      this.choiced = id;
+    radiol(e) {
+      console.log(e);
+      this.radio = e.mp.detail;
+      let id = this.dataList[this.radio].id;
       let add = {
         cmd: "setDefaultAddress",
         id: id
@@ -63,32 +85,30 @@ export default {
       Request.postRequest(add)
         .then(res => {
           console.log(res);
-          if (res.result == "0") {
+          if (res.result == 0) {
             wx.showToast({
               title: "设置成功"
             });
-            wx.setStorageSync("add", JSON.stringify(id));
+            // wx.setStorageSync("add", JSON.stringify(id));
           }
         })
         .catch(res => {});
     },
-    back() {
-      // this.$router.push("/person");
-    },
     goAdd() {
       this.$router.push("/pages/address/addaddress");
     },
-    updateAddress(item) {
-      console.log(item);
-      wx.setStorageSync("adduser", JSON.stringify(item));
-      setTimeout(() => {
-        wx.navigateTo({
-          url: "/pages/address/eaditeaddress"
-        });
-      }, 500);
+    updateAddress(id) {
+      let obj = JSON.parse(this.resultList)[id];
+      console.log(JSON.parse(this.resultList)[id]);
+
+      wx.setStorageSync("adduser", JSON.stringify(obj));
+      wx.navigateTo({
+        url: "/pages/address/myeadit"
+      });
     },
     address() {
       console.log("地址列表");
+
       let add = {
         cmd: "addressList",
         cid: this.cid,
@@ -96,20 +116,26 @@ export default {
       };
       Request.postRequest(add)
         .then(res => {
+          console.log("最初始");
           console.log(res);
-          if (res.result == "0") {
-            this.dataList.push(res.dataList);
-            console.log(this.dataList[0]);
-            for (let i in this.dataList[0]) {
-              if (this.dataList[0][i].isDefault == "1") {
-                this.choiced = this.dataList[0][i].id;
-                wx.setStorageSync(
-                  "add",
-                  JSON.stringify(this.dataList[0][i].id)
-                );
+          if (res.result == 0) {
+            this.totalPage = res.totalPage;
+            this.resultList = JSON.stringify(res.dataList);
+            console.log(this.resultList);
+
+            //  处理手机号
+            for (let i in res.dataList) {
+              res.dataList[i].mobile = `${res.dataList[i].mobile.slice(
+                0,
+                3
+              )}****${res.dataList[i].mobile.slice(-4)}`;
+              this.dataList.push(res.dataList[i]);
+              if (this.dataList[i].isDefault == 1) {
+                this.radio = i;
               }
             }
-            if (this.dataList[0].length > 0) {
+            console.log(this.dataList);
+            if (this.dataList.length > 0) {
               this.ayin = false;
             } else {
               this.ayin = true;
@@ -118,31 +144,22 @@ export default {
         })
         .catch(res => {});
     },
-    deladdress(id, ind) {
-     
-      let self=this;
-      wx.showModal({
-        title: "删除地址",
-        content: "是否要删除该地址？",
-        success(res) {
-          if (res.confirm) {
-            console.log(id);
-            let deladdress = {
-              cmd: "deleteAddress",
-              id: id
-            };
-             console.log(id,ind,self.dataList)
-            Request.postRequest(deladdress)
-              .then(res => {
-                console.log(res);
-                if (res.result == "0") {
-                  self.dataList.splice(ind, 1);
-                }
-              })
-              .catch(res => {});
+    deladdress(id) {
+      console.log(id);
+      let deladdress = {
+        cmd: "deleteAddress",
+        id: id
+      };
+      console.log(id);
+      Request.postRequest(deladdress)
+        .then(res => {
+          console.log(res);
+          if (res.result == "0") {
+            this.dataList = [];
+            this.address();
           }
-        }
-      });
+        })
+        .catch(res => {});
     }
   }
 };
@@ -230,10 +247,10 @@ page {
     .wuadd {
       text-align: center;
       font-size: 18px;
-      position:fixed;
-      top:50%;
-      left:50%;
-      transform translate(-50%,-50%);
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
     }
 
     .add {
@@ -249,5 +266,9 @@ page {
       text-align: center;
     }
   }
+}
+
+.no {
+  height: 60px;
 }
 </style>

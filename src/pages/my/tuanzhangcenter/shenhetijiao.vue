@@ -1,15 +1,14 @@
 <template>
-  <div class='subinfo'>
-     <div class="content">
-          <img src="" alt="">
-          <div>
-            <p>您的信息已提交平台进行审核 </p>
-            <p>请耐心等待审核结果</p>
-          </div>
-           <span>回到个人中心</span>
-
-     </div>
-  </div> 
+  <div class="contain">
+    <div class="box">
+      <div class="pay">
+        <img src="/static/img/chenggong.png" alt />
+        <p>您的信息已提交平台进行审核</p>
+        <p>请耐心等待审核结果</p>
+        <div @click="back">回到个人中心</div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script>
@@ -17,29 +16,27 @@
 
 export default {
   data() {
-    return {
-
-    };
+    return {};
   },
   //监听属性 类似于data概念
   computed: {},
   //监控data中的数据变化
   watch: {},
   //import引入的组件需要注入到对象中才能使用
-  components: {
-
-  },
+  components: {},
   //生命周期 - 创建完成（可以访问当前this实例）
-  created() {
-
+  onLoad() {
+      wx.setNavigationBarTitle({
+      title: "提交成功"
+    });
   },
   //生命周期 - 挂载完成（可以访问DOM元素）
-  mounted() {
-
-  },
+  mounted() {},
   //方法集合
   methods: {
-
+    back() {
+      this.$router.go(-1);
+    }
   },
   //生命周期 - 创建之前
   beforeCreate() {},
@@ -54,37 +51,47 @@ export default {
   //生命周期 - 销毁完成
   destroyed() {},
   //如果页面有keep-alive缓存功能，这个函数会触发
-  activated() {},
-}
+  activated() {}
+};
 </script>
 <style scoped lang="stylus">
-.content{
-  display flex;
-  flex-direction columns ;
-  justify-content space-around;
-  align-items center;
-  height 3rem;
-  img{
-    width .6rem;
-    height .6rem;
-  }
-  div{
-    font-size .14rem;
-    p{
-      line-height .25rem;
+.contain {
+  width: 100%;
+  height: 100%;
+}
+
+.box {
+  width: 100%;
+
+  .pay {
+    width: 100%;
+    padding: 2rem 0.4rem;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-size: 14px;
+    color: #333;
+
+    img {
+      width: 1.7rem;
+      height: 1.7rem;
+    }
+
+    p {
+      margin: 0.15rem 0;
+    }
+
+    div {
+      width: 6rem;
+      height: 40px;
+      line-height: 40px;
+      text-align: center;
+      background: rgb(115, 210, 66);
+      border-radius: 6px;
+      color: #fff;
     }
   }
-  span{
-    display block;
-    width 3.06rem;
-    height .44rem;
-    color #fff;
-    line-height .44rem;
-    text-align center;
-    margin .1rem auto ;
-    font-size .15rem;
-  }
-
-
 }
 </style>

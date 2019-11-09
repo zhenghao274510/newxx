@@ -2,11 +2,9 @@
   <div class="list">
     <div class="search">
       <div class="type" @click.stop="showChose=true">
-        <div>
-          {{options[value].text}}
-          <img src="/static/img/down.png" v-if="!showChose" />
-          <img src="/static/img/up.png" v-else />
-        </div>
+        {{options[value].text}}
+        <img src="/static/img/down.png" v-if="!showChose" />
+        <img src="/static/img/up.png" v-else />
         <!-- 下拉 菜单 -->
         <ul v-if="showChose" class="chose_muen">
           <li
@@ -17,8 +15,9 @@
           >{{v.text}}</li>
         </ul>
       </div>
+
       <div class="search_input">
-        <van-search placeholder="请输入搜索关键词" v-model="keyworde"  />
+        <input confirm-type="search" v-model="keywords" placeholder="请输入关键字" />
       </div>
       <span @click="goSearch">搜索</span>
     </div>
@@ -28,11 +27,7 @@
         <img src="/static/img/delete.png" alt @click="remove" />
       </div>
       <ul class="h_list">
-        <li
-          v-for="(item,index) in searchList"
-          :key="index"
-          @click="goSearchs(item.val)"
-        >{{item.val}}</li>
+        <li v-for="(item,index) in searchList" :key="index" @click="goSearchs(item)">{{item}}</li>
       </ul>
     </div>
   </div>
@@ -46,7 +41,7 @@ export default {
     return {
       showChose: false,
       value: 0,
-      keyworde: "",
+      keywords: "",
       options: [
         {
           value: 1,
@@ -64,92 +59,74 @@ export default {
   mounted() {
     this.shou();
   },
+  onShow() {
+    this.keywords = "";
+  },
   methods: {
     choseStyle(ind) {
+      console.log(ind);
       this.value = ind;
       this.showChose = false;
     },
     remove() {
+      let self = this;
+      console.log(11);
       wx.removeStorage({
         key: "search",
-        success: function(res) {
-          // success
+        success(res) {
+          self.searchList = [];
         }
       });
-      this.shou();
+      // wx.removeStorageSync("search");
     },
     shou() {
+      console.log(wx.getStorageSync("search"));
       if (wx.getStorageSync("search")) {
-        this.searchList = JSON.parse(wx.getStorageSync("search"));
+        this.searchList = JSON.parse(wx.getStorageSync("search")).val;
+        console.log(this.searchList);
       }
     },
     goSearch() {
-      console.log(this.keyworde)
-      if (this.keyworde == "") {
+      console.log(this.keywords, "....." + this.value);
+
+      if (this.keywords == "") {
         wx.showToast({
-          title: "搜索内容不能为空"
+          title: "搜索内容不能为空",
+          icon: "none"
         });
         return;
       } else {
+        let key=this.keywords.trim();
+        let shop = { val: [] };
+        for (let i in this.searchList) {
+          if (this.searchList[i]==key) {
+             this.searchList.splice(i,1);
+          }
+        }
+        this.searchList.unshift(key);
+
+        shop.val = this.searchList;
+        wx.setStorageSync("search", JSON.stringify(shop));
         if (this.value == 0) {
-          this.$router.push("/pages/search/search_product");
-          let shopseach = {};
-          shopseach.name = this.keyworde;
-          wx.setStorage({
-            key: "shopseach",
-            data: JSON.stringify(shopseach)
+          wx.navigateTo({
+            url: "/pages/search/search_product?id=" + key
           });
         } else {
-          let url = "/pages/search/search_shop?name=" + this.value1;
-          this.$router.push(url);
-          let shopssearch = {};
-          shopssearch.name = this.keyworde;
-          wx.setStorage({
-            key: "shopssearch",
-            data: JSON.stringify(shopssearch)
+          wx.navigateTo({
+            url: "/pages/search/search_shop?id=" + key
           });
         }
       }
-      console.log(this.keyworde);
-      let list = {
-        val: this.keyworde
-      };
-      let searchArr = [];
-      searchArr = JSOP;
-      wx.getStorage({
-        key: "search",
-        success: function(res) {
-          // success
-          searchArr = JSON.stringify(res.data);
-        }
-      });
-
-      searchArr.unshift(list);
-      wx.setStorage({
-        key: "search",
-        data: JSON.stringify(searchArr)
-      });
-    },
-    back() {
-      this.$router.go(-1);
     },
     goSearchs(val) {
       console.log(val);
       if (this.value == 0) {
-        this.$router.push("/pages/search/search_product");
-        let shopseach = {};
-        shopseach.name = val;
-        wx.setStorage({
-          key: "shopseach",
-          data: JSON.stringify(shopseach)
+        wx.navigateTo({
+          url: "/pages/search/search_product?id=" + val
         });
       } else if (this.value == 1) {
-        this.$router.push("/pages/search/search_shop");
-        let shopssearch = {};
-        shopssearch.name = val;
-        wx.setStorage({
-          key: "shopssearch",
-          data: JSON.stringify(shopssearch)
+        wx.navigateTo({
+          url: "/pages/search/search_shop?id=" + val
         });
       }
     }
@@ -178,21 +155,20 @@ export default {
 
     .type {
       width: 24%;
-      height: 34px;
+      height: 30px;
+      padding: 0 5px;
       margin-left: 0.4rem;
       background: #F5F5F5;
       position: relative;
       display: flex;
-      justify-content: space-around;
+      justify-content: space-between;
       align-items: center;
+      font-size: 14px;
+      box-sizing: border-box;
 
       img {
-        width: 10px;
-        height: 10px;
-      }
-
-      .active {
-        color: fb9c1c;
+        width: 15px;
+        height: 15px;
       }
 
       .chose_muen {
@@ -212,18 +188,28 @@ export default {
     }
 
     .search_input {
-      width: 60%;
+      width: 57%;
+      background: #e5e5ee;
+
+      input {
+        width: 100%;
+        height: 30px;
+        padding-left: 10px;
+        font-size: 13px;
+      }
     }
 
     span {
+      margin-left: 5px;
       font-size: 14px;
       color: #333;
+      z-index: 99;
     }
   }
 
   .history {
     width: 100%;
-    padding:0.1rem 0.4rem;
+    padding: 0.1rem 0.4rem;
     box-sizing: border-box;
     border-top: 1px solid #eee;
 
@@ -255,11 +241,11 @@ export default {
       flex-wrap: wrap;
 
       li {
-        padding: 0 18px;
-        height: 0.8rem;
-        line-height: 0.8rem;
+        padding: 0 10px;
+        height: 0.4rem;
+        line-height: 0.4rem;
         background: #F7F8FA;
-        border-radius: 20px;
+        border-radius: 10px;
         font-size: 14px;
         color: #333;
         margin-right: 0.5rem;

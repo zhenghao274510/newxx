@@ -1,168 +1,116 @@
 <template>
   <div class="tenants-box">
-    <van-popup v-model="donghua">
-      <div class="lunhui">
-        <van-loading type="spinner" color="#fff" />
-        <p style="color:#fff">数据加载中...</p>
-      </div>
-    </van-popup>
-    <main-header :text="text" @back="back"></main-header>
     <div class="box">
-      <van-list
-        v-model="loading"
-        :finished="finished"
-        finished-text="没有更多了"
-        @load="onLoad"
-        :offset="10"
-      >
-        <ul>
-          <li v-for="(v,k) in list" :key="k" @click="order(v)">
-            <router-link to>
-              <h3>
-                <span>订单编号：{{v.id}}</span>
-                <span style="color: red;" v-if="v.status == 0">待付款</span>
-                <span v-if="v.status == 1">待处理</span>
-                <span v-if="v.status == 2">待发货</span>
-                <span v-if="v.status == 3">待收货</span>
-                <span v-if="v.status == 4">待评价</span>
-                <span v-if="v.status == 5">已评价</span>
-                <span v-if="v.status == 6">已取消</span>
-                <span v-if="v.status == 7">待退款</span>
-                <span v-if="v.status == 8">已退款</span>
-                <span v-if="v.status == 9">拒绝退款</span>
-              </h3>
-              <!--0待付款 1待处理 2待发货 3待收货 4待评价 5已评价 6已取消 7待退款 8已退款 9拒绝退款-->
-              <div class="wrapper">
-                <img v-lazy="v.simage" alt />
-                <div class="s_right">
-                  <div class="s_top">
-                    <span>{{v.sname}}</span>
-                  </div>
-                  <p>{{v.createTime}}</p>
-                  <div class="s_price">
-                    <span style="color:#999;">共计{{v.number}}件商品</span>
-                    <span>￥{{v.finalPay}}元</span>
-                  </div>
+      <ul>
+        <li v-for="(v,k) in list" :key="k" @click="order(v)">
+          <div class="content">
+            <h3>
+              <span>订单编号：{{v.id}}</span>
+              <span style="color: red;" v-if="v.status == 0">待付款</span>
+              <span v-if="v.status == 1">待处理</span>
+              <span v-if="v.status == 2">待发货</span>
+              <span v-if="v.status == 3">待收货</span>
+              <span v-if="v.status == 4">待评价</span>
+              <span v-if="v.status == 5">已评价</span>
+              <span v-if="v.status == 6">已取消</span>
+              <span v-if="v.status == 7">待退款</span>
+              <span v-if="v.status == 8">已退款</span>
+              <span v-if="v.status == 9">拒绝退款</span>
+            </h3>
+            <!--0待付款 1待处理 2待发货 3待收货 4待评价 5已评价 6已取消 7待退款 8已退款 9拒绝退款-->
+            <div class="wrapper">
+              <img :src="v.simage" alt lazy-load />
+              <div class="s_right">
+                <div class="s_top">
+                  <span>{{v.sname}}</span>
+                </div>
+                <p>{{v.createTime}}</p>
+                <div class="s_price">
+                  <span style="color:#999;">共计{{v.number}}件商品</span>
+                  <span>￥{{v.finalPay}}元</span>
                 </div>
               </div>
-              <div class="pay" v-if="v.status == 0">
-                <span>24小时后自动取消订单</span>
-                <div>待支付</div>
-              </div>
-              <div class="pay" v-if="v.status == 3">
-                <span>15天后自动确认收货</span>
-                <div style="padding: 0 0.2rem;">确认收货</div>
-              </div>
-              <div class="comment" v-if="v.status == 4">
-                <div style="padding: 0 0.2rem;">评价</div>
-              </div>
-            </router-link>
-          </li>
-        </ul>
-      </van-list>
+            </div>
+            <div class="pay" v-if="v.status == 0">
+              <span>24小时后自动取消订单</span>
+              <div>待支付</div>
+            </div>
+            <div class="pay" v-if="v.status == 3">
+              <span>15天后自动确认收货</span>
+              <div style="padding: 0 0.2rem;">确认收货</div>
+            </div>
+            <div class="comment" v-if="v.status == 4">
+              <div style="padding: 0 0.2rem;">评价</div>
+            </div>
+          </div>
+        </li>
+      </ul>
+      <div class="loading" v-if="more">
+        <span>没有更多了</span>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
-import MainHeader from "@/components/mainHeader";
 import Request from "@/common/js/request";
 
 export default {
   data() {
     return {
-      donghua: false,
-      text: "退款/售后",
-      active: "",
-      loading: false,
-      finished: false,
       list: [],
       page: 1,
       totalPage: 2,
-      cid:'',
-      id:''
+      cid: "",
+      id: "",
+      more:false
     };
   },
-  components: {
-    MainHeader
-  },
+  components: {},
   onLoad(options) {
-    this.cid=JSON.parse(wx.getStorageSync("user")).cid;
-    this.active=options.id
-    this.myOrder(this.active, this.page);
+    wx.setNavigationBarTitle({
+      title: "退款/售后"
+    });
+    this.cid = options.cid;
+    // this.myOrder(this.page);
+  },
+  onShow() {
+    this.list = [];
+    this.myOrder(this.page);
   },
   mounted() {
-  
+    this.list = [];
+    // this.myOrder(this.page);
+  },
+  onReachBottom() {
+    console.log("到底了");
+    // let self=this;
+    console.log(this.page, this.totalPage);
+    if (this.page < this.totalPage) {
+      this.page += 1;
+      this.myOrder(this.page);
+    } else {
+      this.more = true;
+    }
   },
   methods: {
-    onLoad() {
-      // 异步更新数据
-      // setTimeout(() => {
-      //   if (this.page <= this.totalPage) {
-      //     this.page++;
-      //     this.myOrder(this.active, this.page);
-      //     this.loading = false;
-      //   } else {
-      //     this.loading = false;
-      //   }
-      // }, 500);
-    },
-    back() {
-      this.$router.push("/person");
-    },
-    myOrder(status, page) {
-      this.donghua = true;
+    myOrder(page) {
       let myOrder = {
         cmd: "myOrder",
         cid: this.cid,
         pageNow: page,
-        status: status
+        status: "5"
       };
       Request.postRequest(myOrder)
         .then(res => {
-          // console.log(res.data)
           if (res.result == 0) {
             console.log(res.dataList);
-            this.list = res.dataList;
-            this.totalPage = res.totalPage;
-            this.finished = true;
-            this.donghua = false;
-            if (page < this.totalPage) {
-              page++;
-              this.myOrders(status, page);
-              this.loading = false;
-            } else {
-              this.loading = false;
+            if(res.dataList.length==0){
+              this.more=true;
             }
-          }
-        })
-        .catch(res => {
-        });
-    },
-    myOrders(status, page) {
-      let myOrder = {
-        cmd: "myOrder",
-        cid: this.cid,
-        pageNow: page,
-        status: status
-      };
-      console.log(myOrder);
-      Request.postRequest(myOrder)
-        .then(res => {
-          // console.log(res.data);
-          if (res.result == 0) {
-            for (var i in res.dataList) {
+            this.totalPage = res.totalPage;
+            for (let i in res.dataList) {
               this.list.push(res.dataList[i]);
-            }
-            console.log(this.list);
-            this.totalPage = res.totalPage;
-            this.finished = true;
-            if (page < this.totalPage) {
-              page++;
-              this.myOrders(this.active, page);
-              this.loading = false;
-            } else {
-              this.loading = false;
             }
           }
         })
@@ -170,14 +118,14 @@ export default {
     },
     //详情
     order(v) {
-      console.log(v)
-      // this.$router.push({
-      //   path: "/order_detail",
-      //   query: {
-      //     id: v.id,
-      //     num: 5
-      //   }
-      // });
+      console.log(v);
+      let obj = {
+        direct: 0,
+        id: v.id
+      };
+      wx.navigateTo({
+        url: "/pages/order/orderdetials?id=" + JSON.stringify(obj)
+      });
     }
   }
 };
@@ -191,7 +139,6 @@ export default {
     width: 100%;
     display: flex;
     flex-direction: column;
-    padding-top: 60px;
 
     .order_list {
       width: 100%;
@@ -214,7 +161,6 @@ export default {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          border-bottom: 1px solid #eee;
           padding: 0 0.4rem;
           box-sizing: border-box;
           font-size: 14px;
@@ -233,11 +179,12 @@ export default {
         display: flex;
         flex-direction: column;
         align-items: center;
-        padding: 0 0.4rem;
+        padding: 0.1rem 0.4rem;
         box-sizing: border-box;
         margin-bottom: 10px;
+        border-bottom: 1px solid #eee;
 
-        a {
+        .content {
           display: block;
           width: 100%;
           height: 100%;

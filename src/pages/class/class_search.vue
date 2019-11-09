@@ -21,18 +21,18 @@
           <!-- </van-pull-refresh> -->
         </van-tab>
         <van-tab title="价格优先">
-          <van-list
+          <!-- <van-list
             v-model="loading"
             :finished="finished"
             finished-text="没有更多了"
             @load="beginLoading"
             :offset="10"
             v-if="!show"
-          >
-            <!-- <van-pull-refresh v-model="isLoading" @refresh="onRefresh"> -->
-            <recommendfen :recommend="list"></recommendfen>
-            <!-- </van-pull-refresh> -->
-          </van-list>
+          >-->
+          <!-- <van-pull-refresh v-model="isLoading" @refresh="onRefresh"> -->
+          <recommendfen :recommend="list"></recommendfen>
+          <!-- </van-pull-refresh> -->
+          <!-- </van-list> -->
         </van-tab>
         <van-tab title="销量优先">
           <!-- <van-pull-refresh v-model="isLoading" @refresh="onRefresh"> -->
@@ -41,7 +41,7 @@
         </van-tab>
       </van-tabs>
     </div>
-    <div class="no" v-if="show">暂没有搜索的商品</div>
+    <div class="no" v-if="show">没有更多了</div>
   </div>
 </template>
 
@@ -52,7 +52,6 @@ import Request from "@/common/js/request";
 export default {
   data() {
     return {
-      text: "分类名称",
       active: 0,
       list: [],
       isLoading: false,
@@ -71,31 +70,34 @@ export default {
     Recommendfen
   },
   onLoad(options) {
+    this.list = [];
     console.log(options);
     this.id = JSON.parse(options.id).id;
     wx.setNavigationBarTitle({
       title: JSON.parse(options.id).name
     });
+    this.initDta();
     // console.log(this.id);
   },
-  mounted() {
+  mounted() {},
+  //  上拉刷新
+  onPullDownRefresh() {
     this.initDta();
+  },
+  onReachBottom() {
+    console.log("到底了");
+    // let self=this;
+    console.log(this.page, this.totalPage);
+    if (this.page < this.totalPage) {
+      this.page += 1;
+      this.initDta();
+    } else {
+      this.show = true;
+    }
   },
 
   methods: {
-    onPullDownRefresh: function() {
-      var self = this;
-      this.list = [];
-      this.page = 1;
-      this.finished = false;
-      this.beginLoading();
-      setTimeout(function() {
-        Toast("刷新成功");
-        self.isLoading = false;
-      }, 500);
-    },
     initDta() {
-      this.list = [];
       let Category = {
         cmd: "selectGoodsByCategory",
         orderType: this.sorts,
@@ -106,35 +108,28 @@ export default {
       Request.postRequest(Category)
         .then(res => {
           console.log(res);
+          this.totalPage = res.totalPage;
 
           if (res.result == 0) {
-            this.text = res.categoryName;
             if (res.dataList.length > 0) {
               this.show = false;
-              if (this.page <= res.totalPage) {
-                for (var i = 0; i < res.dataList.length; i++) {
-                  this.list.push(res.dataList[i]);
-                }
+              // if (this.page <= res.totalPage) {
+              for (var i = 0; i < res.dataList.length; i++) {
+                this.list.push(res.dataList[i]);
               }
             } else if (res.dataList !== undefined || res.dataList.length == 0) {
               this.show = true;
             }
           }
+          // }
         })
         .catch(res => {});
     },
-
-    onReachBottom() {
-      // let self=this;
-      if (this.page < this.totalPage) {
-        this.page += 1;
-        this.initDta();
-      } else {
-        wx.showToast({
-          title: "没有更多了"
-        });
-      }
+    //  分享
+    onShareAppMessage(res) {
+      console.log(res);
     },
+
     sort(k) {
       if (k.target.index == undefined) {
         return false;
@@ -159,15 +154,16 @@ export default {
 .no {
   width: 100%;
   height: 100%;
-  position: fixed;
+  // position: fixed;
   display: flex;
   justify-content: center;
   align-items: center;
   font-size: 15px;
   color: #333;
-  top: 124px;
-  left: 0;
-  bottom: 0;
+  height: 1.2rem;
+  // top: 124px;
+  // left: 0;
+  // bottom: 0;
   z-index: 999;
 }
 

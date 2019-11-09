@@ -2,47 +2,62 @@
   <div class="contain">
     <div class="box">
       <h3 v-if="state == 0">
-        <span>去支付</span>
+        <span @click="gotoPay">去支付</span>
+        <!-- <span @click="quxiao">取消订单</span> -->
       </h3>
       <!--//订单状态 0待付款 1待处理 2待发货 3待收货 4待评价 5已评价 6已取消 7待退款 8已退款 9拒绝退款-->
-      <div class="wait" v-if="state == 1">准备出仓</div>
-      <div class="wait" v-if="state == 2">商家已接单，待发货</div>
+      <!-- 订单状态 0待付款 1待处理 2待发货 3待收货 4待评价 5已评价 6已取消 7待退款 8已退款 9拒绝退款 -->
+      <!-- <div class="wait" v-if="state == 1">等待商家接单</div> -->
+      <div class="cancel" v-if="state ==1">
+        <span style="font-size:14px;margin-bottom:0.4rem;">等待商家接单</span>
+        <div class="look" style="font-size:14px;color:#fff;" @click="shentui">申请退款</div>
+      </div>
+      <div class="cancel" v-if="state ==2">
+        <span style="font-size:14px;margin-bottom:0.4rem;">商家已接单，待发货</span>
+        <div class="look" style="font-size:14px;color:#fff;" @click="shentui">申请退款</div>
+      </div>
       <div class="cancel" v-if="state == 3">
         <span style="font-size:14px;margin-bottom:0.4rem;">商品正在路上，请耐心等待</span>
-        <div
-          class="look"
-          style="font-size:14px;color:#fff;"
-          @click="goLogistic(orders.goods)"
-          v-if="orders.deliveryType==2||orders.wlNo!==''"
-        >查看物流</div>
-        <div
-          class="look"
-          style="font-size:14px;color:#fff;"
-          @click="call(orders.recevingCall)"
-          v-else-if="orders.deliveryType==1"
-        >联系收派员</div>
+        <div class="lookmore">
+          <div
+            class="look"
+            style="font-size:14px;color:#fff;"
+            @click="goLogistic(orders.goods)"
+            v-if="orders.deliveryType==2||orders.wlNo!==''"
+          >查看物流</div>
+          <div
+            class="look"
+            style="font-size:14px;color:#fff;"
+            @click="call(orders.recevingCall)"
+            v-else-if="orders.deliveryType==1"
+          >联系收派员</div>
+          <div class="look" style="font-size:14px;color:#fff;" @click="shentui">申请退款</div>
+        </div>
       </div>
       <div class="cancel" v-if="state == 4">
-        <span style="font-size:14px;margin-bottom:0.4rem;">订单已完成</span>
+        <span style="font-size:14px;margin-bottom:0.4rem;">待评价</span>
         <div class="look" style="font-size:14px;" @click="pjlun(orders)">
-          <router-link to style="color:#fff;">去评价</router-link>
+          <div style="color:#fff;" @click="ping">去评价</div>
         </div>
       </div>
       <div class="cancel" v-if="state == 5">
         <span style="font-size:14px;margin-bottom:0.4rem;">订单已完成, 感谢您的使用</span>
         <div class="look" style="font-size:14px;color:#fff;" @click="checkComment">查看评价</div>
       </div>
-      <div class="cancel" v-if="state == 6">
+      <div class="cancel" v-if="state ==6">
         <span style="font-size:14px;margin-bottom:0.4rem;">订单已取消</span>
         <span style="font-size:14px;color:#999;">取消原因：{{orders.reason}}</span>
+        <span @click="del" class="pos">删除订单</span>
       </div>
       <div class="cancel" v-if="state == 7">
         <span style="font-size:14px;margin-bottom:0.4rem;">等待商家同意退单申请</span>
         <span style="font-size:14px;color:#999;">退款原因：{{orders.reason}}</span>
+        <span @click="subShen" class="pos">取消申请</span>
       </div>
       <div class="cancel" v-if="state == 8">
         <span style="font-size:14px;margin-bottom:0.4rem;">已退款</span>
         <span style="font-size:14px;color:#999;">退款原因：{{orders.reason}}</span>
+        <span @click="del" class="pos">删除订单</span>
       </div>
     </div>
     <div class="go_shop">
@@ -97,18 +112,11 @@
       <div class="user_msg">
         <span>收货地址</span>
         <div class="address">
-          <p>{{orders.province}}{{orders.city}}{{orders.town}}{{orders.address}}</p>
+          <p>{{orders.address}}</p>
           <div>
             <span>{{orders.username}}</span>
             <span>{{orders.phone}}</span>
           </div>
-        </div>
-      </div>
-      <div class="user_coupon">
-        <span>支付方式</span>
-        <div class="c_coupon">
-          <span v-if="orders.payMethod==1">支付宝支付</span>
-          <span v-if="orders.payMethod==2">微信支付</span>
         </div>
       </div>
       <div class="beizhu_msg">
@@ -184,6 +192,7 @@
     </div>
     <div class="no_more">没有更多了</div>
     <div class="sure" v-if="state == 3" @click="shou">确认收货</div>
+    <div class="sure" v-if="state==0" @click="quxiao">取消订单</div>
   </div>
 </template>
 
@@ -195,122 +204,146 @@ export default {
       datas: "",
       state: "", //订单状态
       orders: [], //订单详情全部
-      ordershop: [] //商品数据
+      ordershop: [], //商品数据
+      id: "",
+      cid: "",
+      openId: "",
+      direct:0
     };
   },
   onLoad(options) {
     console.log(options.id);
-    this.orderDetail(options.id);
+    this.ordershop = [];
+    this.orders = [];
+    this.id =JSON.parse(options.id).id;
+    this.direct =JSON.parse(options.id).direct;
+    if (wx.getStorageSync("user")) {
+      this.cid = JSON.parse(wx.getStorageSync("user")).cid;
+      this.openId = JSON.parse(wx.getStorageSync("user")).openId;
+      console.log(this.openId);
+    }
     wx.setNavigationBarTitle({
-      title:'订单详情'
-    })
+      title: "订单详情"
+    });
     // this.mess = JSON.parse(localStorage.getItem("mess")).tit;
     // console.log(this.mess);
   },
   components: {},
-  mounted() {},
+  onShow() {
+    this.orderDetail(this.id);
+  },
   methods: {
-    tiaoimg(id) {
-      this.$router.push({
-        name: "goodsxiang",
-        params: {
-          id: id,
-          ding: this.$route.query.id
-        }
+    shentui() {
+      wx.navigateTo({
+        url: "/pages/order/shenqingtui?ids=" + this.id
       });
-      // let ID = {};
-      // ID.id = id;
-      // localStorage.setItem("xiang-shop1ID", JSON.stringify(ID));
     },
-    set() {
-      if (this.datas == "取消订单") {
-        this.$router.push({
-          name: "cancel",
-          params: {
-            num: 1,
-            act: this.$route.query.num,
-            id: this.$route.query.id
-          }
-        });
-      } else if (this.datas == "删除订单") {
-        console.log("删除订单");
-        let deleteOrder = {
-          cmd: "deleteOrder",
-          id: this.$route.query.id
-        };
-        console.log(deleteOrder);
-        Request.postRequest(deleteOrder)
-          .then(res => {
-            console.log(res.data);
-            if (res.data.result == 0) {
-              Toast(res.data.resultNote);
-              this.$router.push("/order_center/" + this.$route.query.num);
-            }
-          })
-          .catch(res => {});
-      } else if (this.datas == "取消申请") {
-        console.log("取消申请");
-        let deleteOrder = {
-          cmd: "cancelApplyRefund",
-          id: this.$route.query.id
-        };
-        console.log(deleteOrder);
-        Request.postRequest(deleteOrder)
-          .then(res => {
-            console.log(res.data);
-            if (res.data.result == 0) {
-              Toast(res.data.resultNote);
-              this.$router.push("/order_center/" + this.$route.query.num);
-            }
-          })
-          .catch(res => {});
-      } else {
-        this.$router.push({
-          name: "cancel",
-          params: {
-            num: 2,
-            act: this.$route.query.num,
-            id: this.$route.query.id
-          }
-        });
-      }
+    ping() {
+      wx.navigateTo({
+        url: "/pages/goodPing/goodPingIndex?ids=" + this.id
+      });
     },
+    tiaoimg(id) {
+      let obj={type:this.direct,id:id}
+      wx.navigateTo({
+        url: "/pages/Good/gooddetials?id=" +JSON.stringify(obj)
+      });
+    },
+    //   取消订单
+    quxiao() {
+      // wx.setStorageSync('num','1');
+      wx.setStorageSync("orderid", this.id);
+      this.$router.replace("/pages/order/quxiaoorder");
+    },
+    //  删除订单
+    del() {
+      console.log("删除订单");
+      let deleteOrder = {
+        cmd: "deleteOrder",
+        id: this.id
+      };
+      console.log(deleteOrder);
+      Request.postRequest(deleteOrder)
+        .then(res => {
+          console.log(res);
+          if (res.result == 0) {
+            wx.showToast({
+              title: "删除成功"
+            });
+            this.$router.go(-1);
+          }
+        })
+        .catch(res => {});
+    },
+
+    //   取消申请
+    subShen() {
+      console.log("取消申请");
+      let deleteOrder = {
+        cmd: "cancelApplyRefund",
+        id: this.id
+      };
+      console.log(deleteOrder);
+      Request.postRequest(deleteOrder)
+        .then(res => {
+          console.log(res);
+          if (res.result == 0) {
+            this.$router.go(-1);
+          }
+        })
+        .catch(res => {});
+    },
+    // set() {
+    //   if (this.datas == "取消订单") {
+    //     this.$router.push({
+    //       name: "cancel",
+    //       params: {
+    //         num: 1,
+    //         act: this.$route.query.num,
+    //         id: this.$route.query.id
+    //       }
+    //     });
+    //   } else if (this.datas == "删除订单") {
+
+    //   } else if (this.datas == "取消申请") {
+
+    //   } else {
+    //     wx.navigateTo({
+    //       url: "/pages/order/quxiaoorder?id=" + this.id
+    //     });
+    //   }
+    // },
     checkComment() {
-      this.$router.push({
-        name: "CommentDetail",
-        params: {
-          id: this.$route.query.id
-        }
+      wx.navigateTo({
+        url: "/pages/goodPing/goodPingDetails?id=" + this.id
       });
     },
     goLogistic(i) {
-      this.$router.push({
-        path: "/logistic",
-        query: {
-          wlNo: this.orders.wlNo,
-          img: i[0].image,
-          wlCode: this.orders.wlCode
-        }
+      let obj = {};
+      obj.wlNo = this.orders.wlNo;
+      obj.img = i[0].image;
+      obj.wlCode = this.orders.wlCode;
+      wx.navigateTo({
+        url: "/pages/order/wuliu?id=" + JSON.stringify(obj)
       });
     },
     call(tel) {
-      console.log("收派员电话" + tel);
-      // let a = document.createElement(a);
-      // a.href = "tel:" + tel;
-      // a.click();
+      wx.makePhoneCall({
+        phoneNumber: tel
+      });
     },
     tel(tel) {
+      wx.makePhoneCall({
+        phoneNumber: tel
+      });
       console.log("商家电话" + tel);
       // let a = document.createElement(a);
       // a.href = "tel:" + tel;
       // a.click();
     },
     pjlun(aa) {
-      this.$router.push({
-        name: "comment",
-        params: {
-          ids: aa.id
-        }
+      wx.navigateTo({
+        title: "/pages/goodPing/goodPingIndex?id=" + aa.id
       });
     },
     orderDetail(id) {
@@ -325,46 +358,83 @@ export default {
             this.state = res.status;
             this.orders = res;
             this.ordershop = res.goods;
-            if (this.state == 0) {
-              this.datas = "取消订单";
-            } else if (this.state == 6) {
-              this.datas = "删除订单";
-            } else if (
-              this.state == 1 ||
-              this.state == 2 ||
-              this.state == 3 ||
-              this.state == 4
-            ) {
-              this.datas = "申请退款";
-            } else if (this.state == 6 || this.state == 8 || this.state == 9) {
-              this.datas = "";
-            } else if (this.state == 7) {
-              this.datas = "取消申请";
-            }
           }
         })
         .catch(res => {});
     },
     shou() {
-      Dialog.confirm({
+      let self = this;
+      wx.showModal({
         title: "确认收货",
-        message: "是否确认收货？"
-      })
-        .then(() => {
-          let orderDetail = {
-            cmd: "confirmReceive",
-            id: this.$route.query.id
-          };
-          Request.postRequest(orderDetail)
-            .then(res => {
-              console.log(res.data);
-              if (res.data.result == 0) {
-                this.$router.push("/order_center/" + this.$route.query.num);
-              }
-            })
-            .catch(res => {});
-        })
-        .catch(() => {});
+        content: "是否确认收货？",
+        showCancel: true,
+        cancelText: "取消",
+        cancelColor: "#000000",
+        confirmText: "确定",
+        confirmColor: "#3CC51F",
+        success: result => {
+          if (result.confirm) {
+            let orderDetail = {
+              cmd: "confirmReceive",
+              id: self.id
+            };
+            Request.postRequest(orderDetail)
+              .then(res => {
+                console.log(res);
+                if (res.result == 0) {
+                  self.$router.go(-1);
+                }
+              })
+              .catch(res => {});
+          }
+        },
+        fail: () => {},
+        complete: () => {}
+      });
+    },
+    gotoPay() {
+      console.log(this.id);
+      let parmas = {
+        cmd: "payByWx",
+        orderid: this.id,
+        openid: this.openId
+      };
+      console.log(parmas);
+      Request.postRequest(parmas).then(res => {
+        if (res.result == 0) {
+          console.log(res);
+          this.PayBywx(
+            res.body.timeStamp,
+            res.body.nonceStr,
+            res.body.prepay,
+            res.body.signType,
+            res.body.paySign
+          );
+        }
+      });
+    },
+    PayBywx(timeStamp, nonceStr, prepay_id, signType, paySign) {
+      let self=this;
+      wx.requestPayment({
+        timeStamp: timeStamp,
+        nonceStr: nonceStr,
+        package: prepay_id,
+        signType: signType,
+        paySign: paySign,
+        success(res) {
+          wx.navigateTo({
+            url: "/pages/order/pay_success?id="+self.direct
+          });
+          console.log("支付成功!");
+        },
+        fail(res) {
+          console.log("交易失败!");
+          wx.showToast({
+            title: "取消交易",
+            icon: "none"
+          });
+        }
+      });
     }
   }
 };
@@ -385,7 +455,7 @@ export default {
       width: 100%;
       height: 1.5rem;
       display: flex;
-      justify-content: center;
+      justify-content: space-around;
       align-items: center;
       font-size: 14px;
       color: rgb(114, 209, 65);
@@ -402,11 +472,28 @@ export default {
       font-size: 14px;
       color: #333;
       border-top: 1px solid #eee;
+      position: relative;
+
+      .pos {
+        position: absolute;
+        right: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+      }
 
       .look {
-        padding: 0.15rem 0.5rem;
+        padding: 0.05rem 0.1rem;
         background: rgb(114, 209, 65);
         border-radius: 6px;
+        font-size:14px;
+      }
+
+      .lookmore {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        width: 60%;
+        margin: 0 auto;
       }
     }
 
@@ -546,6 +633,49 @@ export default {
         font-size: 14px;
         color: #fff;
         margin-left: 0.2rem;
+      }
+    }
+  }
+
+  .linktwo {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    margin: 0.4rem 0;
+
+    .one {
+      background: #fff;
+      border: 1px solid rgb(114, 209, 65);
+
+      span {
+        font-size: 14px;
+        color: rgb(114, 209, 65);
+        margin-left: 0.2rem;
+      }
+    }
+
+    .two {
+      background: rgb(114, 209, 65);
+
+      span {
+        font-size: 14px;
+        color: #fff;
+        margin-left: 0.2rem;
+      }
+    }
+
+    .linkchild {
+      width: 40%;
+      height: 0.85rem;
+      border-radius: 6px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 14px;
+
+      img {
+        width: 0.6rem;
+        height: 0.6rem;
       }
     }
   }

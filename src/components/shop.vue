@@ -1,7 +1,7 @@
 <template>
   <div class="list">
     <ul>
-      <li v-for="(v,k) in dataList" :key="k" @click="goDetail(v.id)">
+      <li v-for="(v,k) in dataList" :key="k" @click="goShopx(v.id)">
         <img :src="v.image" alt lazy-load />
         <div class="list-shop">
           <div class="shop-top">
@@ -16,7 +16,7 @@
               disabled
               disabled-color="rgb(255,164,20)"
               allow-half
-              :size="14"
+              :size="12"
             />
             <span>{{v.stars}}</span>
             <span style="margin-left: 0.3rem">月销:{{v.monthlySale}}</span>
@@ -41,9 +41,12 @@ export default {
     return {};
   },
   methods: {
-    goDetail(id) {
-      console.log(id)
-      this.$emit("goDetail", id);
+     goShopx(id) {
+      console.log(id + "goShopx");
+      wx.navigateTo({
+        url: "/pages/shopdetails/index?id=" + id
+      });
+      // this.$emit("goShopx", id);
     }
   }
 };

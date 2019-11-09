@@ -2,9 +2,14 @@
   <div class="contain" ref="list">
     <!-- <div class="head">分类</div> -->
     <ul class="head">
-      <li v-for="(item,index) in title " :key="index" :class="{'active':activeT==index}" @click="changactive(index)">{{item}}</li>
+      <li
+        v-for="(item,index) in title "
+        :key="index"
+        :class="{'active':activeT==index}"
+        @click="changactive(index)"
+      >{{item}}</li>
     </ul>
-    <div class="cascad-menu" ref="cascadMenu">
+    <div class="cascad-menu" ref="cascadMenu" v-if="dataList!=[]">
       <scroll-view class="left-menu" scroll-y>
         <div class="left-menu-container">
           <ul>
@@ -36,6 +41,7 @@
         </div>
       </scroll-view>
     </div>
+    
   </div>
 </template>
 
@@ -57,24 +63,36 @@ export default {
     };
   },
   components: {},
-  mounted() {
+  onLoad(options) {
+    wx.setNavigationBarTitle({
+      title: "分类"
+    });
+    if (options.id != undefined) {
+      this.activeT = options.id;
+    } else {
+      this.activeT = 0;
+    }
     this.classify();
+  },
+  onShareAppMessage() {
+    return {
+      title: "山城乡鲜",
+      desc:
+        "山城乡鲜是一个专注于健康食品，包括水果、蔬菜、肉类、特产、海鲜、无公害及高品质的有机农产品等优质生鲜食材采购，并配套新鲜物流的服务平台。",
+      path: "" // 路径，传递参数到指定页面。
+    };
   },
   methods: {
     //   切换数据前  清空  记录
-    changactive(ind){
-      if(this.activeT==ind){
-        return ;
-      }else{
-
-        this.activeT=ind;
+    changactive(ind) {
+      if (this.activeT == ind) {
+        return;
+      } else {
+        this.activeT = ind;
         this.classify();
       }
-
     },
     clear() {
-      
-
       this.actindex = 0;
       this.navulHeight = 0;
       this.navItemHeight = 0;
@@ -82,28 +100,37 @@ export default {
       this.contentHeight = [];
       this.contentId = "";
     },
-    
 
     goGoods(e) {
       console.log(e);
-      wx.navigateTo({
-        url: "/pages/class/class_search?id=" + JSON.stringify(e)
-      });
+      let obj={
+        direct:this.activeT,name:e.name,id:e.id
+      }
+      if (this.activeT == 1) {
+        wx.navigateTo({
+          url: "/pages/class/onepinclass?id=" + JSON.stringify(obj)
+        });
+      } else {
+        wx.navigateTo({
+          url: "/pages/class/oneclass?id=" + JSON.stringify(obj)
+        });
+      }
     },
     classify() {
       let classdata = {
-        cmd: "goodsCategory"
+        cmd: "goodsCategory",
+        type: this.activeT
       };
       Request.postRequest(classdata)
         .then(res => {
           console.log(res);
           if (res.result == 0) {
             this.dataList = res.dataList;
-
-            // localStorage.setItem("classify", JSON.stringify(this.dataList));
-            setTimeout(() => {
-              this.calculateHeight();
-            }, 1000);
+            if (this.dataList.length != 0) {
+              setTimeout(() => {
+                this.calculateHeight();
+              }, 1000);
+            }
           }
         })
         .catch(res => {});
@@ -155,6 +182,7 @@ export default {
       query
         .select(".left-item")
         .boundingClientRect(rect => {
+          console.log(rect);
           this.navItemHeight = rect.height;
         })
         .exec();
@@ -162,11 +190,17 @@ export default {
   }
 };
 </script>
+<style>
+page {
+  width: 100%;
+  height: 100%;
+}
+</style>
 
 <style scoped lang="stylus" rel="stylesheet/stylus">
 .contain {
   width: 100%;
-  height: 1100rpx;
+  height: 100%;
   overflow: hidden;
   // padding: 60px 0 0 0;
   box-sizing: border-box;
@@ -305,6 +339,7 @@ export default {
       height: 100%;
       // margin-left: -50px;
       padding-left: 0.15rem;
+      margin-bottom:30px;
 
       .title {
         border-left: 4px solid rgb(114, 209, 65);
@@ -326,14 +361,15 @@ export default {
           flex-direction: column;
           margin-left: 2.5%;
           align-items: center;
-          margin-bottom: 0.4rem;
+          margin-bottom: 0.2rem;
           font-size: 14px;
           color: #333;
 
           img {
             width: 1rem;
             height: 1rem;
-            margin-bottom: 0.3rem;
+            margin-bottom: 0.2rem;
+            border-radius:50%;
           }
         }
       }

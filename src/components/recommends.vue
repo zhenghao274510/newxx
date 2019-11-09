@@ -1,9 +1,8 @@
 <template>
   <div class="list">
-    <ul class="list-box">
+    <ul class="list-box" v-if="recommend.length!=0">
       <li v-for="(v,k) in recommend" :key="k" @click.stop="goDetail(v.gid)">
-        <van-icon name="cross" class="xx" @click.stop="goDetailx(v.gid)" />
-        <img src="/static/img/cross.png" alt class="xx" @click.stop="goDetailx(v.gid)" />
+        <img src="/static/img/cross.png" alt class="xx" @click.stop="goDetailx(v.gid,k)" />
         <img :src="v.image" alt lazy-load class="imgs" />
         <div class="list-text">{{v.name}}</div>
         <div class="list-price">
@@ -46,6 +45,9 @@ export default {
       wx.navigateTo({
         url: "/pages/Good/gooddetials?id=" + id
       });
+      //      wx.navigateTo({
+      //   url: "/pages/pintuan/gooddetailspin?id=" + k
+      // });
     },
     goDetailx(id, k) {
       let datas = {
@@ -60,8 +62,10 @@ export default {
           console.log(res);
           if (res.result == 0) {
             wx.showToast({
-              title: "取消收藏商店成功"
+              title: "取消收藏商品成功",
+              icon:'none'
             });
+            // this.$commit('init')
             this.recommend.splice(k, 1);
           }
         })
@@ -70,13 +74,18 @@ export default {
   }
 };
 </script>
-
+<style>
+  page{
+    width: 100%;
+    min-height: 100%;
+    background: rgb(250, 250, 250);
+  }
+</style>
 <style scoped lang="stylus" rel="stylesheet/stylus">
 .list {
   width: 100%;
   display: flex;
   flex-direction: column;
-  background: rgb(250, 250, 250);
   height: 100%;
 
   h3 {
@@ -106,7 +115,7 @@ export default {
       width: 49%;
       height: 5rem;
       background: #fff;
-      padding: 0.3rem;
+      padding: 0.2rem;
       box-sizing: border-box;
       margin-bottom: 0.2rem;
       position: relative;

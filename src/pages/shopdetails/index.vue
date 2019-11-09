@@ -2,7 +2,7 @@
   <div class="list" ref="list">
     <div class="search" ref="search">
       <div class="search_input">
-        <van-search placeholder="请输入搜索关键词" v-model="value1" />
+        <van-search placeholder="请输入商品名称" @change="onChange" />
       </div>
       <span @click="goSearch">搜索</span>
     </div>
@@ -50,7 +50,7 @@
             <li class="right-item" v-for="(menu,i) in list" :key="i" :id="'con_'+i">
               <div class="title">{{menu.categoryName}}</div>
               <ul>
-                <li v-for="(item, j) in menu.productList" :key="j" @click="goGoods(item.id)">
+                <li v-for="(item, j) in menu.productList" :key="j" @click="goGoods(item)">
                   <div class="data-wrapper">
                     <img :src="item.image" alt />
                     <div class="s_right">
@@ -75,7 +75,7 @@
         </div>
       </scroll-view>
     </div>
-    <div v-if="laia==1">
+    <div v-if="laia==1" style="margin-top:20px;">
       <div class="rate" ref="rates">
         <div class="r_left">
           <span style="font-size: 40px">{{stars}}</span>
@@ -83,39 +83,42 @@
         </div>
         <div class="r_right">
           <span>商品评分：</span>
-          <van-rate v-model="star" disabled disabled-color="rgb(255,210,30)" />
+          <van-rate :value="star" disabled disabled-color="rgb(255,210,30)" />
         </div>
       </div>
-      <div ref="comment" class="comment">
-        <scroller :on-infinite="infinite" ref="scroller" v-if="!noComments">
-          <div class="c_dis">
-            <div class="c_item" v-for="(v,k) in userComments" :key="k">
-              <img :src="v.headImage" alt />
-              <div class="item_right">
-                <div class="right_top">
-                  <div class="r_tit">
-                    <span>{{v.nickName}}</span>
-                    <span>{{v.createTime}}</span>
-                  </div>
-                  <div class="user_star">
-                    <van-rate
-                      v-model="v.star"
-                      disabled
-                      disabled-color="rgb(255,210,30)"
-                      :size="14"
-                    />
-                    <span style="margin-left:0.2rem">{{v.stars}}.0</span>
-                  </div>
+      <div class="comment">
+        <!-- <scroll-view :on-infinite="infinite" > -->
+        <div class="c_dis">
+          <div class="c_item" v-for="(v,k) in userComments" :key="k">
+            <img :src="v.headImage" alt class="img" />
+            <div class="item_right">
+              <div class="right_top">
+                <div class="r_tit">
+                  <span>{{v.nickName}}</span>
+                  <span>{{v.createTime}}</span>
                 </div>
-                <p>{{v.content}}</p>
-                <div class="c_img" v-if="v.images.length > 0">
-                  <img :src="imgs" v-for="imgs in v.images" alt :key="imgs" />
+                <div class="user_star">
+                  <van-rate :value="v.stars" disabled disabled-color="rgb(255,210,30)" :size="14" />
+                  <span style="margin-left:0.2rem">{{v.stars}}.0</span>
                 </div>
+              </div>
+              <p>{{v.content}}</p>
+              <div class="c_img" v-if="v.images.length > 0">
+                <img :src="imgs" v-for="imgs in v.images" alt :key="imgs" />
               </div>
             </div>
           </div>
-        </scroller>
-        <div class="noComment" v-if="noComments">暂没有该商家的评论</div>
+        </div>
+        <div class="loading" v-if="more">
+          <span>没有更多了</span>
+        </div>
+        <!-- </scroll-view> -->
+        <div class="noComment" v-if="noComments">
+          <div style="padding-top:50px;">
+           暂没有该商家的评论
+          </div>
+          
+          </div>
       </div>
     </div>
     <div class="s_shop" v-if="laia==2">
@@ -165,9 +168,7 @@ export default {
     return {
       titleList: ["商品", "评价", "商家"],
       ai: false,
-      loading: false,
       more: false,
-      finished: false,
       laia: 0,
       page: 1,
       totalPage: 5,
@@ -196,29 +197,77 @@ export default {
       navulHeight: 0, // 导航里ul高度
       navItemHeight: 0, // 每个导航高度
       listHeight: [], // foods内部块的高度
-      contentHeight: [] // 内容区域scroll-view高度
+      contentHeight: [], // 内容区域scroll-view高度
+      timer: null
     };
   },
   onLoad(options) {
     this.clear();
     this.id = options.id;
-    console.log(this.id);
-  },
-  mounted() {
-    this.cid = JSON.parse(wx.getStorageSync("user")).cid;
     this.init();
+    console.log(this.id);
+    this.laia = 0;
+  },
+  onShow() {
+    if (wx.getStorageSync("user")) {
+      this.cid = JSON.parse(wx.getStorageSync("user")).cid;
+    }
+  },
+  onShareAppMessage() {
+    return {
+      title: "山城乡鲜",
+      desc:
+        "山城乡鲜是一个专注于健康食品，包括水果、蔬菜、肉类、特产、海鲜、无公害及高品质的有机农产品等优质生鲜食材采购，并配套新鲜物流的服务平台。",
+      path: "" // 路径，传递参数到指定页面。
+    };
   },
   components: {
     ShopHeader
   },
+  onReachBottom() {
+    if (this.laia == 1) {
+      console.log("到底了");
+      console.log(this.cPage, this.cTotalPage);
+      if (this.cPage < this.cTotalPage) {
+        this.cPage += 1;
+        this.infinite();
+      } else {
+        this.more = true;
+      }
+    }
+
+    // let self=this;
+  },
   methods: {
+    onChange(e) {
+      this.value1 = e.mp.detail;
+      console.log(this.value1);
+    },
+    //  搜索商品
+    goSearch() {
+      if (this.value1 == "") {
+        wx.showToast({
+          title: "搜索内容不能为空",
+          icon: "none"
+        });
+      } else {
+        let obj = {
+          sid: this.id,
+          key: this.value1
+        };
+        wx.navigateTo({
+          url: "/pages/search/shopsearchprod?id=" + JSON.stringify(obj)
+        });
+      }
+    },
     init() {
       this.shopList = [];
       let self = this;
       let datas = {
         cmd: "enterShopInfo",
         sid: this.id,
-        cid: this.cid
+        cid: this.cid,
+        flag: "1"
       };
       console.log(datas);
       Request.postRequest(datas)
@@ -241,15 +290,27 @@ export default {
               self.store = "1";
             }
             self.bgeinLoading();
-          } else if (res.result == "2") {
-            this.$router.push("/fenghao");
           }
         })
         .catch(res => {});
     },
+    nouser() {
+      wx.showModal({
+        title: "温馨提醒！",
+        content: "你还没有绑定手机号,请先绑定手机号,确认信息",
+        showCancel: false,
+        success: function(res) {
+          if (res.confirm) {
+            wx.navigateTo({
+              url: "/pages/bind/bindtell"
+            });
+          }
+        }
+      });
+    },
     stores() {
-      if (this.cid == null) {
-        this.$router.replace("/login");
+      if (this.cid == undefined) {
+        this.nouser();
       } else {
         if (this.store == "1") {
           this.store = "0";
@@ -271,7 +332,8 @@ export default {
                 });
               } else {
                 wx.showToast({
-                  title: "取消收藏"
+                  title: "取消收藏",
+                  icon: none
                 });
               }
             }
@@ -280,7 +342,7 @@ export default {
       }
     },
     clear() {
-      this.actindex =0;
+      this.actindex = 0;
       this.contentId = "";
       this.navulHeight = 0;
       this.navItemHeight = 0;
@@ -289,19 +351,29 @@ export default {
     },
     goCoupon(id) {
       console.log(id);
-      let params = {
-        id: id,
-        name: this.user
-      };
-      wx.navigateTo({
-        url: "./youhuijuan?params=" + JSON.stringify(params)
-      });
+      if (this.cid == undefined) {
+        this.nouser();
+      } else {
+        let params = {
+          id: id,
+          name: this.user
+        };
+        wx.navigateTo({
+          url: "./youhuijuan?params=" + JSON.stringify(params)
+        });
+      }
     },
-    goGoods(id) {
-      console.log(id);
-      wx.navigateTo({
-        url: "../Good/gooddetials?id=" + id
-      });
+    goGoods(e) {
+      console.log(e);
+      if (e.type == 1) {
+        wx.navigateTo({
+          url: "/pages/pintuan/gooddetailspin?id=" + JSON.stringify(e)
+        });
+      } else {
+        wx.navigateTo({
+          url: "/pages/Good/gooddetials?id=" + JSON.stringify(e)
+        });
+      }
     },
     bgeinLoading() {
       let datas = {
@@ -337,28 +409,18 @@ export default {
       Request.postRequest(datas)
         .then(res => {
           console.log(res);
-          if (res.data.result == 0) {
+          if (res.result == 0) {
             self.star = Number(res.average);
             self.stars = res.average;
-            if (res.dataList.length > 0) {
-              self.noComments = false;
-              if (self.cPage <= res.totalPage) {
-                for (let i = 0; i < res.dataList.length; i++) {
-                  for (let i in res.dataList) {
-                    res.dataList[i].star = Number(res.dataList[i].stars);
-                  }
-                  self.userComments.push(res.dataList[i]);
-                  console.log(self.userComments);
-                }
-                self.cPage++;
-                self.$refs.scroller.finishInfinite(self.cPage <= res.totalPage);
-              } else {
-                self.$refs.scroller.finishInfinite(true);
-              }
-            } else if (res.data.result == "2") {
-              this.$router.push("/fenghao");
-            } else {
+            self.cTotalPage = res.totalPage;
+            if (res.dataList.length == 0) {
               self.noComments = true;
+            } else {
+              for (let i in res.dataList) {
+                // res.dataList[i].star = Number(res.dataList[i].stars);
+                self.userComments.push(res.dataList[i]);
+                console.log(self.userComments);
+              }
             }
           }
         })
@@ -366,26 +428,31 @@ export default {
     },
     shopper(ind) {
       // this.clear();
-      switch (ind) {
-        case 0:
-          this.laia = 0;
-          break;
-        case 1:
-          if (this.laia != 1) {
-            this.laia = 1;
-            this.infinite();
-          } else {
-            return false;
-          }
-          break;
-        case 2:
-          if (this.laia != 2) {
-            this.laia = 2;
-            this.getShopinfo();
-          } else {
-            return false;
-          }
-          break;
+      if (this.laia == ind) {
+        return;
+      } else {
+        this.userComments = [];
+        switch (ind) {
+          case 0:
+            this.laia = 0;
+            break;
+          case 1:
+            if (this.laia != 1) {
+              this.laia = 1;
+              this.infinite();
+            } else {
+              return false;
+            }
+            break;
+          case 2:
+            if (this.laia != 2) {
+              this.laia = 2;
+              this.getShopinfo();
+            } else {
+              return false;
+            }
+            break;
+        }
       }
     },
     getShopinfo() {
@@ -503,7 +570,6 @@ export default {
     box-sizing: border-box;
     display: flex;
     align-items: center;
-    justify-content: space-between;
     border-bottom: 1px solid #eee;
 
     img {
@@ -513,6 +579,7 @@ export default {
 
     .search_input {
       width: 80%;
+      margin-right: 16px;
     }
 
     span {
@@ -612,7 +679,6 @@ export default {
   .comment {
     width: 100%;
     position: relative;
-    min-height: 320px;
 
     .c_dis {
       width: 100%;
@@ -628,7 +694,7 @@ export default {
         display: flex;
         justify-content: space-between;
 
-        img {
+        .img {
           width: 1.2rem;
           height: 1.2rem;
           border-radius: 50%;
@@ -692,6 +758,7 @@ export default {
     width: 100%;
     min-height: 500px;
     position: relative;
+    margin-top: 20px;
 
     .shop_box {
       width: 100%;
@@ -818,6 +885,7 @@ export default {
 
       &.current {
         background: #fff;
+        color: rgb(114, 209, 65);
         border-left: 4px solid rgb(114, 209, 65);
       }
 

@@ -19,6 +19,10 @@ export default {
     datas: {
       type: Array,
       default: []
+    },
+    direct: {
+      type: Number,
+      default: 0
     }
   },
   data() {
@@ -27,17 +31,37 @@ export default {
   components: {},
   methods: {
     classify(e) {
-      console.log(e)
-      wx.navigateTo({
-        url: "/pages/class/oneclass?id=" + JSON.stringify(e)
-      });
+      if (this.direct == 100) {
+        wx.navigateTo({
+          url: "/pages/class/onepinclass?id=" + JSON.stringify(e)
+        });
+      } else {
+        wx.navigateTo({
+          url: "/pages/class/oneclass?id=" + JSON.stringify(e)
+        });
+      }
+      console.log(e);
     },
     fenlei() {
-		console.log(111)
-		   wx.switchTab({
-			   url:"/pages/tarba/class"			  
-		   })
-	}
+      let url = "";
+      console.log(this.direct);
+      if (this.direct == 100) {
+        url = "/pages/tarba/class?id=" + 1;
+        // this.$router.replace({path:'/pages/tarba/class',query:{id:1}})
+      } else if (this.direct == 200) {
+        url = "/pages/tarba/class?id=" + 2;
+        // this.$router.replace({path:'/pages/tarba/class',query:{id:2}})
+      } else {
+        url = "/pages/tarba/class?id=" + 0;
+        // this.$router.replace({path:'/pages/tarba/class',query:{id:0}})
+      }
+      console.log(111);
+      wx.reLaunch({
+        url: url
+      });
+      // this.$router.replace({ url
+      // });
+    }
   }
 };
 </script>

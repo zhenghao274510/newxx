@@ -14,7 +14,7 @@
             </div>
           </div>
           <div class="shop-star">
-            <van-rate v-model="v.star" disabled disabled-color="rgb(255,164,20)" :size="18" />
+            <van-rate :value="v.star" disabled disabled-color="rgb(255,164,20)" :size="18" />
             <span>{{v.stars}}</span>
             <span style="margin-left: 0.3rem">月销{{v.monthlySale}}</span>
           </div>
@@ -33,7 +33,7 @@
                 <span style="font-size: 36px;">{{v.coupon.amount}}</span>元
               </div>
               <div class="c_dis">
-                <span class="miniParce">单笔满{{parseFloat(v.coupon.miniPurchase)}}使用</span>
+                <span class="miniParce">单笔满{{v.coupon.miniPurchase}}使用</span>
                 <span  class="endParce">现金券</span>
               </div>
             </div>

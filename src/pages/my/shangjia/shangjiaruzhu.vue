@@ -1,109 +1,113 @@
 <template>
-	<div class="tenants-box" ref="box">
-		<main-header :text="text" @back="back"></main-header>
-		<div class="tenants-zi">
-			<div class="Qr-code">
-				<div>
-					<canvas id="canvas"></canvas>
-					<p>{{shopjie}}</p>
-				</div>
-			</div>
-			<div class="steps" ref="list" :style="{'height':dom + 'px'}">
-				<h3>入驻步骤:</h3>
-				<iframe :src="txt" height="90%" width="100%" frameborder="0"></iframe>
-			</div>
-		</div>
-	</div>
+  <div class="tenants-box" ref="box">
+    <div class="tenants-zi">
+      <div class="Qr-code">
+        <div>
+          <img src="/static/img/erweima.png" alt />
+          <p>{{shopjie}}</p>
+        </div>
+      </div>
+      <div class="steps" ref="list">
+        <h3>入驻步骤:</h3>
+        <rich-text :nodes="txt" ></rich-text>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script>
-	// import MainHeader from "@/components/component/mainHeader";
-	import Request from "@/common/js/request";
-	// import QRCode from "qrcode"; //二维码生成
-	export default {
-		data() {
-			return {
-				text: "商家入驻",
-				shopjie: "",
-				ershop: "",
-				txt: "",
-				dom: 0
-			};
-		},
-		components: {
-			// MainHeader
-		},
-		mounted() {
-      		this.getshop();
-			// this.dom = this.$refs.box.offsetHeight - 270 
-		},
-		methods: {
-			back() {
-				this.$router.push("/person");
-			},
-			getshop() {
-				let goCarlist = {
-					cmd: "businessEntry"
-				};
-				Request.postRequest(goCarlist)
-					.then(res => {
-						console.log(res);
-						if (res.result == 0) {
-							this.shopjie = res.alt;
-							this.ershop = res.qrCode;
-							this.txt = res.content;
-
-							// this.useqrcode(this.ershop);
-						}
-					})
-					.catch(res => {
-						// Toast("获取失败");
-					});
-			},
-			// useqrcode(www) {
-			// 	//二维码生成
-			// 	console.log(www);
-			// 	var canvas = document.getElementById("canvas");
-			// 	QRCode.toCanvas(canvas, www, function(error) {
-			// 		if (error) console.error(error);
-			// 		console.log("二维码生成成功!");
-			// 	});
-			// }
-		}
-	};
+// import linUrl from "@/components/webview";
+import Request from "@/common/js/request";
+export default {
+  data() {
+    return {
+      shopjie: "",
+      txt: "",
+    };
+  },
+  components: {
+    // MainHeader
+    // linUrl
+  },
+  onLoad() {
+    wx.setNavigationBarTitle({
+      title: "商家入驻"
+    });
+  },
+  mounted() {
+    this.getshop();
+    // this.dom = this.$refs.box.offsetHeight - 270
+  },
+  methods: {
+    getshop() {
+      let goCarlist = {
+        cmd: "businessEntry"
+      };
+      Request.postRequest(goCarlist)
+        .then(res => {
+          console.log(res);
+          if (res.result == 0) {
+            this.shopjie = res.alt;
+            this.ershop = res.qrCode;
+            this.txt = this.escape2Html(res.content);
+          }
+        })
+        .catch(res => {
+          // Toast("获取失败");
+        });
+    },
+    escape2Html(str) {
+      var s = "";
+      s = str.replace(/&amp;/g, "&");
+      s = s.replace(/&lt;/g, "<");
+      s = s.replace(/&gt;/g, ">");
+      s = s.replace(/&nbsp;/g, " ");
+      s = s.replace(/&#39;/g, "'");
+      s = s.replace(/&quot;/g, '"');
+      s = s.replace(/<br\/>/g, "\n");
+      return s;
+    }
+  }
+};
 </script>
 
 <style scoped lang="stylus" rel="stylesheet/stylus">
-	.tenants-box {
-		width: 100%;
-		height: 100%;
-	}
-	
-	.tenants-zi {
-		width: 100%;
-		height: 100%;
-		padding: 50px 10px 0;
-		box-sizing: border-box;
-		overflow: hidden;
+.tenants-box {
+  width: 100%;
+  height: 100%;
+}
 
-		.Qr-code {
-			height: 200px;
+.tenants-zi {
+  width: 100%;
+  height: 100%;
+  padding: 10px 10px 0;
+  box-sizing: border-box;
+  overflow: hidden;
 
-			div {
-				width: 200px;
-				margin: 30px auto;
-				text-align: center;
-			}
-		}
+  .Qr-code {
+    height: 200px;
 
-		.steps {
-			width: 100%;
-			// height: 100%;
-			padding: 0 0.4rem;
-			box-sizing: border-box;
-			h3 {
-				padding-bottom: 5px;
-			}
-		}
-	}
+    div {
+      width: 200px;
+      margin: 30px auto;
+      text-align: center;
+
+      img {
+        width: 200rpx;
+        height: 200rpx;
+      }
+    }
+  }
+
+  .steps {
+    width: 100%;
+    // height: 100%;
+    padding: 0 0.1rem;
+    box-sizing: border-box;
+
+    h3 {
+      padding-bottom: 5px;
+    }
+  }
+}
 </style>

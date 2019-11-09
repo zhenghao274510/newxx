@@ -1,14 +1,7 @@
 <template>
   <div class="problem-box">
     <div class="box">
-      <!-- <van-list
-        v-model="loading"
-        :finished="finished"
-        finished-text="没有更多了"
-        @load="beginLoading"
-        :offset="10"
-      > -->
-        <ul>
+        <ul v-if="dataList.length!=0">
           <li v-for="(v,k) in dataList" :key="k">
             <div class="wrapper">
               <img :src="v.headImage" alt class="imgtop" lazy-load />
@@ -19,7 +12,7 @@
                 </p>
                 <div class="s_top">
                   <div class="ping">
-                    <van-rate v-model="v.stars" :size="12" />
+                    <van-rate :value="v.stars" :size="12" disabled disabled-color="rgb(255,210,30)" />
                     <span>{{v.stars}}.0</span>
                   </div>
                   <p>{{v.createTime}}</p>
@@ -32,15 +25,18 @@
               <img :src="i" alt v-for="(i,s) in v.images" :key="s" />
             </div>
             <div class="to_shop" @click.stop="shang(v.sid)">
-              <router-link to>
-                <img :src="v.simg" alt lazy-load />
+              <div class="main">
+                <img :src="v.simg" alt lazy-load  @click.stop="seecomment(k,s)"  />
                 <div>{{v.sname}}</div>
                 <img src="/static/img/right.png" alt class="shop_right" />
-              </router-link>
+              </div>
             </div>
           </li>
         </ul>
-      <!-- </van-list> -->
+        <div class="no" v-else>你还没有评论</div>
+           <div class="loading" v-if="more">
+            <span>没有更多了</span>
+          </div>
     </div>
   </div>
 </template>
@@ -53,18 +49,43 @@ export default {
       totalPage: 2,
       page: 1,
       dataList: [],
-      cid:''
+      cid:'',
+      more:false
     };
   },
   components: {
   },
   onLoad() {
+      wx.setNavigationBarTitle({
+      title: "我的评价"
+    });
+    this.dataList=[];
   },
   mounted() {
     this.cid=JSON.parse(wx.getStorageSync("user")).cid;
       this.evaluteList();
   },
+    onReachBottom() {
+      console.log('到底了')
+      // let self=this;
+      console.log(this.page,this.totalPage)
+      if (this.page < this.totalPage) {
+        this.page += 1;
+        this.evaluteList(this.active, this.page);
+      } else {
+       this.more=true;
+      }
+    },
   methods: {
+    //   图片预览
+      seecomment(k,inx) {
+      wx.previewImage({
+        // 当前展示
+        current: this.dataList[k].images[inx],
+        //  要展示的数组
+        urls: this.dataList[k].images
+      });
+    },
     evaluteList() {
       let evaluteList = {
         cmd: "evaluteList",
@@ -77,26 +98,14 @@ export default {
           console.log(res);
           if (res.result == 0) {
             this.totalPage = res.totalPage;
-            this.dataList = res.dataList;
-            this.donghua = false;
-          } else if (res.result == "2") {
-            this.$router.push("/pages/fenghao/main");
+            for(let i in res.dataList){
+              // res.dataList[i].createTime=res.dataList[i].createTime.replace(/'.'/g,'-')
+              this.dataList.push(res.dataList[i]);
+            }
+            // this.dataList = res.dataList;
           }
         })
         .catch(res => {});
-    },
-    beginLoading() {
-      // 异步更新数据
-      setTimeout(() => {
-        if (this.page <= this.totalPage) {
-          this.page++;
-          this.evaluteList(this.active, this.page);
-          this.loading = false;
-        } else {
-          this.loading = false;
-          this.finished = true;
-        }
-      }, 500);
     },
     del(id) {
       console.log("删除", id);
@@ -108,19 +117,23 @@ export default {
         .then(res => {
           console.log(res);
           if (res.result == 0) {
+             this.dataList=[];
             this.evaluteList();
           }
         })
         .catch(res => {});
     },
     shang(ID) {
-      this.$router.push("/shop_detailshang");
-      let IDs = {};
-      IDs.id = ID;
-      wx.setStorage({
-        key:"shangID",
-        data:JSON.stringify(IDs)
+      // this.$router.push("/pages/shopdetails/index");
+      wx.navigateTo({
+        url:"/pages/shopdetails/index?id="+ID
       })
+      // let IDs = {};
+      // IDs.id = ID;
+      // wx.setStorage({
+      //   key:"shangID",
+      //   data:JSON.stringify(IDs)
+      // })
       // localStorage.setItem("shangID", JSON.stringify(IDs));
     }
   }
@@ -129,7 +142,7 @@ export default {
 
 <style scoped lang="stylus" rel="stylesheet/stylus">
 .box {
-  padding: 72px 10px 0;
+  padding:10px 0;
 }
 
 .order_list {
@@ -159,7 +172,7 @@ ul {
     flex-direction: column;
     padding: 0 0.4rem;
     box-sizing: border-box;
-    margin-bottom: 20px;
+    margin-bottom:10px;
 
     a {
       display: block;
@@ -216,8 +229,9 @@ ul {
       padding: 10px 15px;
       position: relative;
       height: 1rem;
+      background:#F8F8F8;
 
-      a {
+      .main {
         display: flex;
         justify-content: flex-start;
 
@@ -237,5 +251,9 @@ ul {
       }
     }
   }
+}
+.no{
+  text-align:center;
+  margin-top:50px;
 }
 </style>

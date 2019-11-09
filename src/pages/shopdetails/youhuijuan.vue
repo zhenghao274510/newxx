@@ -3,13 +3,13 @@
     <div class="box">
       <ul>
         <li v-for="(v,k) in coupons" :key="k">
-          <img src="/static/img/youhuijuan.png" alt="">
+          <img src="/static/img/youhuijuan.png" alt />
           <div class="c_price">
-            <span>￥</span>           
+            <span>￥</span>
             <span style="font-size:30px">{{v.amount}}</span>
           </div>
           <div class="c_produce">
-            <h3>满{{parseFloat(v.miniPurchase)}}元可用</h3>
+            <h3>满{{v.miniPurchase}}元可用</h3>
             <div class="c_time">
               <span>有效期至:{{v.closingDate}}</span>
               <span
@@ -17,13 +17,16 @@
                 @click="getCoupon(v.state,v.id)"
                 v-if="v.state==0"
               >点击领券</span>
-              <span style="margin-left:20px;"  @click="getCoupon(v.state,v.id)" v-else>已领取</span>
+              <span style="margin-left:20px;" @click="getCoupon(v.state,v.id)" v-else>已领取</span>
             </div>
             <p>仅限{{user}}使用</p>
           </div>
         </li>
       </ul>
       <div class="no" v-if="noCoupons">暂没有优惠券可以领取</div>
+      <div class="loading" v-if="more">
+        <span>没有更多了</span>
+      </div>
     </div>
     <dialogs :data1="data1" :data2="data2" :showDialog="showDialog" @hide="hide"></dialogs>
     <dialogs :data1="datas1" :data2="data2" :data3="data3" :showDialog="showDialogs" @hide="hides"></dialogs>
@@ -46,28 +49,36 @@ export default {
       coupons: [],
       page: 1,
       noCoupons: false,
-      cid:'',
-      id:"",
-      user:''
+      cid: "",
+      id: "",
+      user: "",
+      more: false,
+      totalPage: 1
     };
   },
   components: {
     Dialogs
   },
-  onLoad(options){
-    console.log(options.params)
-    this.id=JSON.parse(options.params).id;
-    this.user=JSON.parse(options.params).name;
-      this.cid=JSON.parse(wx.getStorageSync("user")).cid;
-
+  onLoad(options) {
+    console.log(options.params);
+    this.id = JSON.parse(options.params).id;
+    this.user = JSON.parse(options.params).name;
+    this.cid = JSON.parse(wx.getStorageSync("user")).cid;
   },
   mounted() {
     this.infinite();
   },
+  //  上拉触底 加载
+  onReachBottom() {
+    console.log("触底");
+    if (this.page < this.totalPage) {
+      this.page++;
+      this.infinite();
+    } else {
+      this.more = true;
+    }
+  },
   methods: {
-    back() {
-      this.$router.go(-1);
-    },
     getCoupon(state, id) {
       let self = this;
       if (state == 0) {
@@ -82,8 +93,6 @@ export default {
               console.log(res);
               this.showDialog = true;
               this.infinite();
-            } else if (res.result == "2") {
-              this.$router.push("/fenghao");
             }
           })
           .catch(res => {});
@@ -97,14 +106,6 @@ export default {
     hides() {
       this.showDialogs = false;
     },
-    refresh() {
-      var self = this;
-      this.coupons = [];
-      this.page = 1;
-    //   setTimeout(function() {
-    //     self.$refs.scroller.finishPullToRefresh();
-    //   }, 2000);
-    },
     infinite() {
       let self = this;
       let datas = {
@@ -117,17 +118,18 @@ export default {
         .then(res => {
           console.log(res);
           if (res.result == 0) {
+            self.totalPage = res.totalPage;
             if (res.dataList.length > 0) {
               self.noCoupons = false;
               res.dataList.forEach(item => {
-                 item.closingDate=item.closingDate.substring(0,10);
+                item.closingDate = item.closingDate.substring(0, 10);
               });
               self.coupons = res.dataList;
+            } else if (self.page <= self.totalPage) {
+              this.more = true;
             } else {
               self.noCoupons = true;
             }
-          } else if (res.result == "2") {
-            this.$router.push("/fenghao");
           }
         })
         .catch(res => {});
@@ -135,6 +137,13 @@ export default {
   }
 };
 </script>
+<style>
+page {
+  width: 100%;
+  min-height: 100%;
+  background: #f5f5f5;
+}
+</style>
 
 <style scoped lang="stylus" rel="stylesheet/stylus">
 .contain {
@@ -161,8 +170,9 @@ export default {
   width: 100%;
   height: 100%;
   display: flex;
+  flex-direction: column;
   background: #f5f5f5;
-  padding: 0 20px ;
+  padding: 0 20px;
   box-sizing: border-box;
   position: relative;
 
@@ -170,45 +180,46 @@ export default {
     width: 100%;
     display: flex;
     flex-direction: column;
-    
+
     li {
       width: 100%;
       height: 2.4rem;
       display: flex;
-      align-items:center;
+      align-items: center;
       box-sizing: border-box;
       margin: 0.15rem 0;
-      position relative
-      img{
-         position absolute;
-         top:0;
-         left:0;
-         width 100%;
-         height:100%;
-         z-index:0;
+      position: relative;
+
+      img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
       }
 
       .c_price {
         width: 40%;
-        display:flex;
-       align-items:center;
-       justify-content:center;
-        font-size: 18px;        
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
         color: red;
         border-right: 1px dashed #eee;
-        z-index:12;
+        z-index: 12;
       }
 
       .c_produce {
-        margin-left:10px;
+        margin-left: 10px;
         height: 100%;
         display: flex;
         flex-direction: column;
-        align-items center;
-        justify-content:space-around;
-        padding: 0.2rem 0 .2rem 0;
+        align-items: center;
+        justify-content: space-around;
+        padding: 0.2rem 0 0.2rem 0;
         box-sizing: border-box;
-        z-index:12;
+        z-index: 12;
 
         h3 {
           width: 100%;
@@ -217,12 +228,14 @@ export default {
           font-size: 16px;
           color: #333;
         }
+
         .c_time {
           width: 100%;
           height: 0.8rem;
           display: flex;
           justify-content: space-between;
           align-items: center;
+
           span {
             font-size: 12px;
             color: #999;

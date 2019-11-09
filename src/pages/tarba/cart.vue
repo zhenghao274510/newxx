@@ -7,11 +7,10 @@
         :class="{'active':activeT==index}"
         @click="changactive(index)"
       >{{item}}</li>
-
-      <div class="bianji" @click.stop="goEditor(shan)" v-if="yin==true">{{bianji}}</div>
     </ul>
-
-    
+    <div class="bianji">
+      <div @click.stop="goEditor(shan)" v-if="yin==true">{{bianji}}</div>
+    </div>
 
     <div class="lists" v-if="wei==false">
       <div class="uls" v-if="NOcart==false">
@@ -31,24 +30,25 @@
                 <div class="order_detail">
                   <h2>{{ite.name}}</h2>
                   <span style="color: #999">{{ite.kg}}</span>
-                  <span style="color: red;font-size: 16px;font-weight: 600;">￥{{ite.new}}</span>
+                  <div class="changenum">
+                    <span style="color: red;font-size: 16px;font-weight: 600;">￥{{ite.new}}</span>
+                    <span class="fix fixnum" v-if="shan==false">x {{ite.number}}</span>
+                    <div class="buynum" v-else @click.stop>
+                      <span @click.stop="delnum(ite)">-</span>
+                      <input type="number" v-model="ite.number" />
+                      <span @click.stop="add(ite)">+</span>
+                    </div>
+                  </div>
                 </div>
-                <span class="fix fixnum" v-if="shan==false">x {{ite.number}}</span>
-                <van-stepper
-                  class="fix"
-                  v-model="ite.number"
-                  input-width="20px"
-                  button-size="20px"
-                  async-change
-                  @plus.stop="plus(ite)"
-                  @minus.stop="minus(ite)"
-                  @blur.stop="blur(ite)"
-                  v-else
-                />
               </div>
             </li>
           </ul>
         </div>
+        <div class="nomore"></div>
+      </div>
+      <div v-else class="kongbai">
+        <img src="/static/img/bg.png" />
+        <span @click.stop="gotoHome">去首页逛逛</span>
       </div>
     </div>
 
@@ -86,7 +86,19 @@ export default {
       cid: ""
     };
   },
-  created() {},
+  onShareAppMessage() {
+    return {
+      title: "山城乡鲜",
+      desc:
+        "山城乡鲜是一个专注于健康食品，包括水果、蔬菜、肉类、特产、海鲜、无公害及高品质的有机农产品等优质生鲜食材采购，并配套新鲜物流的服务平台。",
+      path: "" // 路径，传递参数到指定页面。
+    };
+  },
+  onLoad() {
+    wx.setNavigationBarTitle({
+      title: "购物车"
+    });
+  },
   components: {},
   computed: {
     total() {
@@ -104,31 +116,76 @@ export default {
       return count;
     }
   },
-  mounted() {
+  onShow() {
     if (wx.getStorageSync("user")) {
       this.cid = JSON.parse(wx.getStorageSync("user")).cid;
 
-      this.gocarlist(this.cid);
-      this.gounum();
-      // } else {
-      //   this.wei = true;
+      if (this.cid == undefined) {
+        wx.showModal({
+          title: "温馨提醒！",
+          content: "你还没有绑定手机号,请先绑定手机号,确认信息",
+          showCancel: true,
+          success: function(res) {
+            if (res.confirm) {
+              wx.navigateTo({
+                url: "/pages/bind/bindtell"
+              });
+            } else if (res.cancel) {
+              console.log("quxiao");
+            }
+          }
+        });
+      } else {
+        this.checked = false;
+        this.yin = false;
+        this.gocarlist(this.cid);
+      }
     }
   },
   methods: {
+    add(item) {
+      console.log(item);
+      item.number += 1;
+      this.updateCar(item, item.number);
+    },
+    delnum(item) {
+      console.log(item);
+      if (item.number > 1) {
+        item.number -= 1;
+        this.updateCar(item, item.number);
+      }
+    },
     changactive(ind) {
       this.activeT = ind;
+      this.dataList = [];
+      this.gocarlist();
+      this.checked = false;
     },
 
     gitto(id) {
       console.log(id);
-      wx.navigateTo({
-        url: "/pages/Good/gooddetials?id=" + id
-      });
-      let ID = {};
-      ID.id = id;
-      wx.setStorageSync("cart-shopID", JSON.stringify(ID));
+      let obj={type:this.activeT,id:id}
+      if (this.activeT == 1) {
+        wx.navigateTo({
+          url: "/pages/pintuan/gooddetailspin?id=" + JSON.stringify(obj)
+        });
+      } else {
+        wx.navigateTo({
+          url: "/pages/Good/gooddetials?id=" + JSON.stringify(obj)
+        });
+      }
+
+      // let ID = {};
+      // ID.id = id;
+      // wx.setStorageSync("cart-shopID", JSON.stringify(ID));
     },
-    gocarlist(id) {
+    //去首页
+    gotoHome() {
+      wx.switchTab({
+        url: "/pages/tarba/home"
+      });
+    },
+    gocarlist() {
       if (wx.getStorageSync("gocarlist")) {
         this.dataList = JSON.parse(wx.getStorageSync("gocarlist"));
         if (this.dataList.length > 0) {
@@ -141,7 +198,8 @@ export default {
       }
       let golist = {
         cmd: "carList",
-        cid: id
+        cid: this.cid,
+        type: this.activeT
       };
       console.log(golist);
       Request.postRequest(golist)
@@ -181,30 +239,28 @@ export default {
             console.log(this.dataList);
             wx.setStorageSync("gocarlist", JSON.stringify(this.dataList));
             // localStorage.setItem("gocarlist", JSON.stringify(this.dataList));
-          } else if (res.result == "2") {
-            this.$router.push("/fenghao");
           }
         })
         .catch(res => {});
     },
-    gounum() {
-      if (wx.getStorageSync("gouserInfo")) {
-        this.gou = JSON.parse(wx.getStorageSync("gouNUm"));
-      }
-      let datas = {
-        cmd: "cartCount",
-        cid: this.cid
-      };
-      Request.postRequest(datas)
-        .then(res => {
-          console.log(res);
-          if (res.result == 0) {
-            this.gou = res.totalCount;
-            wx.setStorageSync("gouNUm", JSON.stringify(this.gou));
-          }
-        })
-        .catch(res => {});
-    },
+    // gounum() {
+    //   if (wx.getStorageSync("gouserInfo")) {
+    //     this.gou = JSON.parse(wx.getStorageSync("gouNUm"));
+    //   }
+    //   let datas = {
+    //     cmd: "cartCount",
+    //     cid: this.cid
+    //   };
+    //   Request.postRequest(datas)
+    //     .then(res => {
+    //       console.log(res);
+    //       if (res.result == 0) {
+    //         this.gou = res.totalCount;
+    //         // wx.setStorageSync("gouNUm", JSON.stringify(this.gou));
+    //       }
+    //     })
+    //     .catch(res => {});
+    // },
     allOrder() {
       this.checked = !this.checked;
       for (let i = 0; i < this.dataList.length; i++) {
@@ -277,39 +333,42 @@ export default {
       } else {
         this.bianji = "编辑";
         this.shan = false;
+        // this.gocarlist(this.cid);
       }
     },
     goCenter() {
+      let num = 0;
       for (let i in this.dataList) {
         for (let j in this.dataList[i].items) {
-          if (this.dataList[i].items[j].check != true) {
-            // Toast('请选择商品')
-          } else {
-            console.log(this.dataList);
-            wx.navigateTo({
-              url:
-                "/pages/order/finishorder?car=" + JSON.stringify(this.dataList)
-            });
+          if (this.dataList[i].items[j].check) {
+            num += 1;
           }
         }
       }
+      wx.setStorageSync("car", JSON.stringify(this.dataList));
+
+      if (num > 0) {
+        if (this.activeT== 1) {
+          wx.navigateTo({
+            url: "/pages/pintuan/pintuanSub"
+          });
+        } else {
+          let obj={direct:this.activeT}
+          wx.navigateTo({
+            url: "/pages/order/finishorder?id="+JSON.stringify(obj)
+          });
+        }
+      } else if (num == 0) {
+        wx.showToast({
+          title: "请选择商品"
+        });
+      }
     },
-    //这下面的是购物车编辑模块
-    plus(i) {
-      console.log(i);
-      this.updateCar(i);
-    },
-    minus(i) {
-      this.updateCar(i);
-    },
-    blur(i) {
-      this.updateCar(i);
-    },
-    updateCar(val) {
-      console.log(val);
+    updateCar(item, number) {
+      console.log(item, number);
       let updateCar = {
         cmd: "updateCar",
-        cars: val.id + "-" + val.number
+        cars: item.id + "-" + number
       };
       Request.postRequest(updateCar)
         .then(res => {
@@ -340,11 +399,9 @@ export default {
         .then(res => {
           console.log(res);
           if (res.result == 0) {
-            wx.removeStorageSync("gocarlist");
+            // wx.removeStorageSync("gocarlist");
             this.gocarlist(this.cid);
             this.gounum();
-          } else if (res.result == "2") {
-            this.$router.push("/fenghao");
           }
         })
         .catch(res => {});
@@ -352,8 +409,42 @@ export default {
   }
 };
 </script>
-
+<style>
+/* page {
+  width: 100%;
+  height: 100%;
+} */
+</style>
 <style scoped lang="stylus" rel="stylesheet/stylus">
+.nomore {
+  height: 90px;
+}
+
+.kongbai {
+  height: 100%;
+  width: 100%;
+  position: relative;
+
+  img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+  }
+
+  span {
+    display: block;
+    margin: 270px auto;
+    width: 200px;
+    font-size: 20px;
+    color: #fff;
+    background: green;
+    border-radius: 5px;
+    padding: 5px 10px;
+    text-align: center;
+  }
+}
+
 .contain {
   width: 100%;
   height: 100%;
@@ -363,7 +454,7 @@ export default {
   .head {
     width: 100%;
     height: 50px;
-    background:#fff;
+    background: #fff;
     box-sizing: border-box;
     display: flex;
     align-items: center;
@@ -371,7 +462,7 @@ export default {
     position: fixed;
     top: 0;
     left: 0;
-    z-index:999;
+    z-index: 999;
 
     li {
       padding: 5px 5px;
@@ -389,14 +480,22 @@ export default {
   }
 
   .bianji {
+    width: 90%;
+    margin: 0 auto;
     font-size: 15px;
     text-align: right;
-    margin-left:30px;
+    margin-top: 50px;
+    overflow: hidden;
+
+    div {
+      float: right;
+      height: 30px;
+      line-height: 30px;
+    }
   }
 
   .lists {
     width: 100%;
-    padding-top: 40px;
     display: flex;
     flex-direction: column;
 
@@ -409,7 +508,7 @@ export default {
         width: 100%;
         display: flex;
         align-items: center;
-        padding: 0.4rem;
+        padding: 10px;
         box-sizing: border-box;
         border-bottom: 1px solid #eee;
         font-size: 14px;
@@ -420,7 +519,7 @@ export default {
         width: 100%;
         display: flex;
         flex-direction: column;
-        padding: 0.4rem;
+        padding: 10px;
         box-sizing: border-box;
         color: #333;
         border-bottom: 10px solid #f5f5f5;
@@ -436,7 +535,7 @@ export default {
             width: 90%;
             display: flex;
             align-items: center;
-            margin-left: 0.4rem;
+            margin-left: 10px;
             box-sizing: border-box;
             position: relative;
 
@@ -455,13 +554,13 @@ export default {
             }
 
             img {
-              width: 2.2rem;
-              height: 2.2rem;
+              width: 110px;
+              height: 110px;
             }
 
             .order_detail {
               width: 70%;
-              height: 2.2rem;
+              height: 110px;
               display: flex;
               flex-direction: column;
               justify-content: space-around;
@@ -475,6 +574,38 @@ export default {
                 text-overflow: ellipsis;
                 overflow: hidden;
                 white-space: nowrap;
+              }
+
+              .changenum {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+
+                .buynum {
+                  display: flex;
+                  justify-content: flex-end;
+                  align-items: center;
+
+                  span {
+                    width: 25px;
+                    height: 24px;
+                    border: 1px solid #ccc;
+                    border-radius: 2rpx;
+                    line-height: 24px;
+                    text-align: center;
+                    font-size: 12px;
+                  }
+
+                  input {
+                    margin: 0 5px;
+                    width: 20px;
+                    height: 20px;
+                    line-height: 20px;
+                    font-size: 12px;
+                    text-align: center;
+                    border: 1px solid #ccc;
+                  }
+                }
               }
             }
           }

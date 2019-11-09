@@ -1,26 +1,23 @@
 {
   "pages": [
-    "pages/tarba/home",
+    "pages/author/index",
     "pages/tarba/person",
+    "pages/tarba/home",
     "pages/tarba/cart",
     "pages/tarba/class",
     "pages/tarba/nearyShop"
   ],
-  "enablePullDownRefresh": "true",
-  "onReachBottomDistance": "50",
-  "networkTimeout": {
-    "request": 10000,
-    "downloadFile": 10000
-  },
   "subPackages": [{
       "root": "pages/my",
       "pages": [
         "tuanzhangcenter/tuanzhangcenter",
+        "tuanzhangcenter/restuanzhang",
         "tuanzhangcenter/changeinfo",
         "tuanzhangcenter/getmoney",
-        "tuanzhangcenter/restuanzhang",
         "tuanzhangcenter/shenhetijiao",
-        "shangjia/index",
+        "tuanzhangcenter/tixianshenhe",
+        "tuanzhangcenter/zhangdan",
+        "tuanzhangcenter/todayDetails",
         "shangjia/shangjiaruzhu",
         "kefucenter",
         "message",
@@ -29,7 +26,6 @@
         "shoucang",
         "person_msg",
         "changeMoblie",
-        "moneydetails",
         "message_detail"
       ]
     },
@@ -40,16 +36,27 @@
         "finishorder",
         "all",
         "orderdetials",
-        "shequorder"
+        "shequorder",
+        "goodorder",
+        "wuliu",
+        "quxiaoorder",
+        "pay_success",
+        "TuiShop",
+        "pinorderdetials",
+        "shenqingtui",
+        "shequorderdetial",
+        "shequTui"
       ]
     },
     {
       "root": "pages/address",
       "pages": [
-        "index",
-        "addaddress",
-        "map",
-        "position"
+        "myadd",
+        "buyeadit",
+        "buyadd",
+        "myeadit",
+        "position",
+        "addaddress"
       ]
     },
     {
@@ -57,14 +64,21 @@
       "pages": [
         "index",
         "search_product",
-        "search_shop"
+        "search_shop",
+        "shopsearchprod"
+      ]
+    },
+    {
+      "root": "pages/goodPing",
+      "pages": [
+        "goodPingIndex",
+        "goodPingDetails"
       ]
     },
     {
       "root": "pages/shopdetails",
       "pages": [
         "index",
-        "shopingdetials",
         "youhuijuan",
         "couponlin"
       ]
@@ -79,30 +93,63 @@
       "root": "pages/class",
       "pages": [
         "oneclass",
-        "shopclass",
-        "class_search"
+        "class_search",
+        "onepinclass"
       ]
     },
     {
       "root": "pages/discount",
       "pages": [
         "discountList",
-        "goodFood"
+        "goodFood",
+        "pintuanList"
       ]
+    },
+    {
+      "root": "pages/upSet",
+      "pages": [
+        "fuwutiaowen",
+        "problem",
+        "provisionsDetail",
+        "yijian",
+        "fuwen",
+        "problemDetials"
+      ]
+    },
+    {
+      "root": "pages/pintuan",
+      "pages": [
+        "nearbytuan",
+        "gooddetailspin",
+        "pintuanSub",
+        "pintuanGood"
+      ]   
+    }
+    ,
+    {
+      "root": "pages/bind",
+      "pages": [
+        "bindtell"      
+      ]   
     }
   ],
   "window": {
     "backgroundTextStyle": "light",
     "navigationBarBackgroundColor": "#fff",
     "navigationBarTitleText": "山城乡鲜",
-    "navigationBarTextStyle": "black"
+    "navigationBarTextStyle": "black",
+    "onReachBottomDistance" :50,
+    "withShareTicket":true
+  },
+  "networkTimeout": {
+    "request": 10000,
+    "downloadFile": 10000
   },
   "tabBar": {
     "color": "#999",
     "backgroundColor": "#ffffff",
     "selectedColor": "#72D241",
     "borderStyle": "white",
-    "size": "14px",
 
     "list": [{
         "text": "首页",
@@ -143,17 +190,19 @@
     "van-tabs": "/static/vant/tabs/index",
     "van-tab": "/static/vant/tab/index",
     "van-tabbar-item": "/static/vant/tabbar-item/index",
-    "van-stepper": "/static/vant/stepper/index",
     "van-checkbox": "/static/vant/checkbox/index",
     "van-radio": "/static/vant/radio/index",
     "van-rate": "/static/vant/rate/index",
     "van-radio-group": "/static/vant/radio-group/index",
-    "van-popup": "/static/vant/popup/index",
     "van-goods-action": "/static/vant/goods-action/index",
     "van-goods-action-big-btn": "/static/vant/goods-action-button/index",
     "van-list": "/static/vant/collapse/index",
     "van-cell":"/static/vant/cell/index",
-    "van-cell-group":"/static/vant/cell-group/index"
+    "van-cell-group":"/static/vant/cell-group/index",
+    "van-card":"/static/vant/card/index",
+    "van-count-down":"/static/vant/count-down/index",
+    "van-field":"/static/vant/field/index",
+    "van-popup":"/static/vant/popup/index"
 
 
   },

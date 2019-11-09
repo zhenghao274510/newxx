@@ -2,15 +2,15 @@
   <div class="list">
     <h3 v-if="tits">{{tits}}</h3>
     <ul class="list-box">
-      <li v-for="(v,k) in recommend" :key="k" @click.stop="goDetail(v.id)">
+      <li v-for="(v,k) in recommend" :key="k" @click.stop="goDetail(v)">
         <div class="divimg">
           <img :src="v.image" alt lazy-load />
         </div>
         <div class="list-text">{{v.name}}</div>
         <div class="list-price">
           <div class="list-left">
-            <span style="color: red;font-size: 14px;" v-if="v.price!==undefined">￥{{v.price}}</span>
-            <span style="color: red;font-size: 14px;" v-if="v.price==undefined">￥{{v.originalPrice}}</span>
+            <span  v-if="v.price!==undefined">￥{{v.price}}</span>
+            <s  v-if="v.discount==1">￥{{v.originalPrice}}</s>
           </div>
           <img src="/static/img/gouwuche2.png" alt @click.stop="shopcart(v)" />
         </div>
@@ -33,21 +33,58 @@ export default {
     }
   },
   data() {
-    return {};
+    return {
+      cid:''
+    };
   },
   onLoad() {
-     this.cid=JSON.parse(wx.getStorageSync('user')).cid;
+    if (wx.getStorageSync("user")) {
+      this.cid = JSON.parse(wx.getStorageSync("user")).cid;
+    }
   },
   methods: {
-     goDetail(id) {
-       console.log(id)
-       wx.navigateTo({
-        url: "/pages/Good/gooddetials?id=" + id
-      });
+    //  上拉刷新
+    onPullDownRefresh() {
+      console.log("开始刷新");
+      //  this.initDta();
+    },
+    onReachBottom() {
+      console.log("到底了");
+    },
+    goDetail(item) {
+      let obj={type:item.type,id:item.id}
+      if (item.type==1) {
+        wx.navigateTo({
+          url: "/pages/pintuan/gooddetailspin?id=" + JSON.stringify(obj)
+        });
+      } else if(item.type==2) {
+        wx.navigateTo({
+          url: "/pages/Good/gooddetials?id=" + JSON.stringify(obj)
+        });
+      }else{
+         wx.navigateTo({
+          url: "/pages/Good/gooddetials?id=" + JSON.stringify(obj)
+        });
+      }
     },
     shopcart(v) {
-     console.log(v)
-       let datas = {
+      if (this.cid ==undefined) {
+        console.log(21);
+        wx.showModal({
+          title: "温馨提醒！",
+          content: "你还没有绑定手机号,请先绑定手机号,确认信息",
+          showCancel: false,
+          success: function(res) {
+            if (res.confirm) {
+              wx.navigateTo({
+                url: "/pages/bind/bindtell"
+              });
+            }
+          }
+        });
+      } else {
+        console.log(2);
+        let datas = {
           cmd: "addToCar",
           gid: v.id,
           cid: this.cid,
@@ -59,11 +96,12 @@ export default {
             console.log(res);
             if (res.result == 0) {
               wx.showToast({
-                title:'添加购物车成功'
-              })
-            } 
+                title: "添加购物车成功"
+              });
+            }
           })
           .catch(res => {});
+      }
     }
   }
 };
@@ -86,7 +124,7 @@ export default {
   .list-box {
     margin-top: 0.2rem;
     width: 100%;
-    padding: 0 0.3rem;
+    padding: 0 0.1rem;
     box-sizing: border-box;
     display: flex;
     justify-content: space-between;
@@ -105,11 +143,11 @@ export default {
         overflow: hidden;
         height: 144px;
         text-align: center;
-        font-size:0;
+        font-size: 0;
 
         img {
           width: 100%;
-          height:130px;
+          height: 130px;
         }
       }
 
@@ -129,6 +167,21 @@ export default {
         display: flex;
         justify-content: space-between;
         align-items: center;
+         .list-left {
+            display: flex;
+
+            span {
+              font-size: 16px !important;
+              color: red;
+            }
+
+            s {
+              font-size: 14px;
+              text-decoration: line-through;
+              color: #dedede;
+              margin-left: 10px;
+            }
+          }
 
         img {
           width: 0.4rem;

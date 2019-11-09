@@ -1,5 +1,11 @@
 <template>
   <div class="list">
+      <div class="search">
+        <div class="search_input">
+        <input confirm-type="search" v-model="keywords" placeholder="请输入商品名称">
+      </div>
+      <span @click="goSearch">搜索</span>
+      </div>
     <div class="shop">
       <van-tabs
         v-model="active"
@@ -16,12 +22,12 @@
             v-model="loading"
             :finished="finished"
             finished-text="没有更多了"
-            @load="beginLoading"
+            @load="onLoad"
             :offset="10"
             v-if="!show"
           >
             <!-- <van-pull-refresh v-model="isLoading" @refresh="onRefresh"> -->
-            <recommendfen :recommend="showList"></recommendfen>
+              <shop  :dataList="showList"></shop>
             <!-- </van-pull-refresh> -->
           </van-list>
         </van-tab>
@@ -30,26 +36,12 @@
             v-model="loading"
             :finished="finished"
             finished-text="没有更多了"
-            @load="beginLoading"
+            @load="onLoad"
             :offset="10"
             v-if="!show"
           >
             <!-- <van-pull-refresh v-model="isLoading" @refresh="onRefresh"> -->
-            <recommendfen :recommend="showList"></recommendfen>
-            <!-- </van-pull-refresh> -->
-          </van-list>
-        </van-tab>
-        <van-tab title="价格优先">
-          <van-list
-            v-model="loading"
-            :finished="finished"
-            finished-text="没有更多了"
-            @load="beginLoading"
-            :offset="10"
-            v-if="!show"
-          >
-            <!-- <van-pull-refresh v-model="isLoading" @refresh="onRefresh"> -->
-            <recommendfen :recommend="showList"></recommendfen>
+              <shop  :dataList="showList"></shop>
             <!-- </van-pull-refresh> -->
           </van-list>
         </van-tab>
@@ -58,23 +50,23 @@
             v-model="loading"
             :finished="finished"
             finished-text="没有更多了"
-            @load="beginLoading"
+            @load="onLoad"
             :offset="10"
             v-if="!show"
           >
             <!-- <van-pull-refresh v-model="isLoading" @refresh="onRefresh"> -->
-            <recommendfen :recommend="showList"></recommendfen>
+              <shop  :dataList="showList"></shop>
             <!-- </van-pull-refresh> -->
           </van-list>
         </van-tab>
       </van-tabs>
     </div>
-    <div class="no" v-if="show">暂没有搜索的商品</div>
+    <div class="no" v-if="show">暂没有搜索的商家</div>
   </div>
 </template>
 
 <script>
-import Recommendfen from "@/components/recommendfen";
+import shop from "@/components/sousuoShop";
 import Request from "@/common/js/request";
 
 export default {
@@ -90,19 +82,20 @@ export default {
       totalPage: "",
       show: false,
       recommend: [],
-      id: "",
+      keywords: "",
       ink: ""
     };
   },
   components: {
-    Recommendfen,
+    shop
   },
   onLoad(options) {
-    this.id = options.id;
-    console.log(this.id);
+    this.keywords = options.id;
+
+    console.log(this.keywords);
   },
   mounted() {
-    this.initDta();
+    this.initDta(this.keywords);
   },
   computed: {
     showList() {
@@ -110,26 +103,13 @@ export default {
     }
   },
   methods: {
-    back() {
-      this.$router.push("/classify");
-    },
-    onRefresh: function() {
-      var self = this;
-      this.list = [];
-      this.page = 1;
-      this.finished = false;
-      this.beginLoading();
-      setTimeout(function() {
-        Toast("刷新成功");
-        self.isLoading = false;
-      }, 500);
-    },
-    initDta() {
+    //  初始页面 加载
+    initDta(keywords) {
       this.list=[];
       let Category = {
-        cmd: "selectGoodsByCategory",
+        cmd: "selectShopByName",
         orderType: this.sorts,
-        id: this.id,
+        name:keywords,
         pageNow: this.page
       };
       console.log(Category);
@@ -150,14 +130,29 @@ export default {
         })
         .catch(res => {});
     },
+    //  本页面数据搜索
+      goSearch() {
+      console.log(this.keywords ,".....")
+
+      if (this.keywords == "") {
+        wx.showToast({
+          title: "搜索内容不能为空",
+          icon:'none'
+        });
+        return;
+      } else {
+      this.initDta(this.keywords);
+      }
+    },
 
     beginLoading() {
       if (this.page < this.totalPage) {
         this.page += 1;
-        this.initDta();
+        this.initDta(this.keywords);
       } else {
         wx.showToast({
-          title: "没有更多了"
+          title: "没有更多了",
+          icon:'none'
         });
       }
     },
@@ -167,7 +162,7 @@ export default {
       } else {
         this.sorts = k.target.index;
         this.clear();
-        this.initDta();
+        this.initDta(this.keywords);
       }
       console.log(k.target.index);
       // let self = this;
@@ -199,7 +194,6 @@ export default {
 
 .van-tabs__wrap {
   position: fixed !important;
-  top: 40px;
 }
 
 .list {
@@ -209,7 +203,33 @@ export default {
     width: 100%;
     display: flex;
     flex-direction: column;
-    padding-top: 50px;
   }
 }
+.search{
+   width: 100%;
+    height: 40px;
+    padding: 0 15px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+     .search_input {
+      width: 60%;
+      background:#e5e5ee;
+      input{
+        width:100%;
+        height:30px;
+        padding-left:10px;
+        font-size:13px;
+        
+      }
+    }
+
+    span {
+      font-size: 14px;
+      color: #333;
+       margin-left:20px;
+    }
+}
+
 </style>

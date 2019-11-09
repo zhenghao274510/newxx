@@ -1,41 +1,59 @@
 <template>
   <div class="contain">
-    <div class="head">
-      <div class="city" @click="inits">
-        <img src="/static/img/shouye-dingwei.png" alt />
-        <span>{{city}}</span>
+    <!-- <div formType="submit"> -->
+    <!-- <div class="head"> -->
+    <form @submit="getformid" report-submit="true">
+      <div class="head">
+        <div class="city">
+          <img src="/static/img/shouye-dingwei.png" alt />
+          <span v-if="active==0||active==1" @click="choseNearBy">{{current}}</span>
+          <span v-else @click="getCurLocation">{{city}}</span>
+          <!-- <span v-else @click.stop="getCurLocation">{{leader.neighbor}}</span> -->
+        </div>
+        <div class="search">
+          <img src="/static/img/shouye-sousuo.png" alt />
+          <input
+            type="text"
+            placeholder="输入店铺或商品名称"
+            @focus="goSearch"
+            placeholder-style="color:#fff"
+          />
+        </div>
+        <div class="message" @click="goMessage">
+          <button formType="submit" class="formid"></button>
+          <img src="/static/img/shouye-xiaoxi.png" alt />
+        </div>
       </div>
-      <div class="search">
-        <img src="/static/img/shouye-sousuo.png" alt />
-        <input type="text" placeholder="输入店铺或商品名称" @focus="goSearch" placeholder-style="color:#fff" />
-      </div>
-      <img src="/static/img/shouye-xiaoxi.png" @click="goMessage" alt />
-      <div class="dian" v-if="xiaoxi==true"></div>
-    </div>
+    </form>
+    <!-- </div> -->
     <div ref="all" class="wrapper">
       <van-tabs
         :active="active"
         color="rgb(114,209,65)"
         title-active-color="rgb(114,209,65)"
         sticky
-        :offset-top="10"
-        @click="changeTab"
         swipeable
-        animated
-        :duration="0.5"
+        duration="0.1"
         @change="changeIng"
       >
         <van-tab :title="v.name" v-for="(v,k) in cate1" :key="k">
-          <div class="swipe">
+          <div class="swipe" v-if="showtarba">
             <swipe :images="images"></swipe>
           </div>
-          <div class="navs">
-            <navs :datas="datas"></navs>
-          </div>
-          <div class="slide-box">
-            <discount :recommendList="list" :title="title" v-if="cate1[active].name=='推荐'"></discount>
 
-            <div class="list" v-else>
+          <div class="navs">
+            <navs :datas="datas" :direct="direct"></navs>
+          </div>
+
+          <div class="slide-box">
+            <discount
+              :recommendList="list"
+              :title="title"
+              v-if="cate1[active].name=='推荐'"
+              :direct="direct"
+            ></discount>
+
+            <div class="list" v-else @click.stop>
               <h3 v-if="title">{{title1}}</h3>
 
               <ul class="list-box">
@@ -54,7 +72,7 @@
                     <div class="list-price">
                       <div class="list-left">
                         <span>￥{{item.price}}</span>
-                        <s>￥{{item.originalPrice}}</s>
+                        <s v-if="item.discount==1">￥{{item.originalPrice}}</s>
                       </div>
                       <img src="/static/img/gouwuche2.png" alt @click.stop="shopcart(item)" />
                     </div>
@@ -62,9 +80,9 @@
                 </li>
               </ul>
             </div>
-            <p class="zhe_p" @click.stop="chakan(cate1[active].name)">查看更多》</p>
+            <p class="zhe_p" @click.stop="chakan(cate1[active].name)">查看更多>></p>
           </div>
-          <recommendx :recommend="recommendList" :tits="tits"></recommendx>
+          <recommendx :recommend="recommendList" :tits="tits" :direct="direct"></recommendx>
           <div class="loading" v-if="more">
             <span>没有更多了</span>
           </div>
@@ -80,11 +98,11 @@ import Navs from "@/components/navs";
 import Discount from "@/components/discount";
 import Recommendx from "@/components/recommendx";
 import Request from "@/common/js/request";
-// import getCity from "@/common/js/location";
-
+import QQMapWX from "@/common/jsdk/qqmap-wx-jssdk";
 export default {
   data() {
     return {
+      current: "",
       active: 0,
       num: 0,
       title: "折扣专区",
@@ -100,15 +118,47 @@ export default {
       loading: false,
       recommendList: [],
       list: [],
-      id: "",
+      id: 100,
       more: false,
-      xiaoxi: false,
-      gou: 0,
-      cid: ""
+      cid: "",
+      openId: "",
+      qqMapSdk: "",
+      direct: 100,
+      showtarba: false,
+      leader: {},
+      fromid: ""
+    };
+  },
+  onShareAppMessage() {
+    return {
+      title: "山城乡鲜",
+      desc:
+        "山城乡鲜是一个专注于健康食品，包括水果、蔬菜、肉类、特产、海鲜、无公害及高品质的有机农产品等优质生鲜食材采购，并配套新鲜物流的服务平台。",
+      path: "" // 路径，传递参数到指定页面。
     };
   },
   onLoad() {
-    this.cid = "b94cb0c7d5544b268727b6e3a2ac9a06";
+    wx.setNavigationBarTitle({
+      title: "首页"
+    });
+
+    this.diao();
+    this.getCurLocation();
+    this.qqMapSdk = new QQMapWX({
+      key: "JYKBZ-NJNCU-GVDVC-B3RUD-AA5EH-3PFYT"
+    });
+  },
+  onShow() {
+    if (wx.getStorageSync("leaderInfo")) {
+      this.leader = JSON.parse(wx.getStorageSync("leaderInfo"));
+      console.log(this.leader);
+      this.current = this.leader.neighbourhood;
+    }
+    if (wx.getStorageSync("user")) {
+      this.cid = JSON.parse(wx.getStorageSync("user")).cid;
+      console.log(this.cid);
+      // this.getNum();
+    }
   },
   components: {
     swipe,
@@ -116,317 +166,439 @@ export default {
     Discount,
     Recommendx
   },
-  mounted() {
-    let user = {};
-    user.cid = "b94cb0c7d5544b268727b6e3a2ac9a06";
-    wx.setStorageSync("user", JSON.stringify(user));
-    //   获取城市定位
-    // getCity.getCurrentCityName();
-
-    // if (this.cid) {
-    this.diao();
-    // }
-
-    // success
-    this.id = "";
-    this.active = 0;
-    let obj = {};
-    obj.num = this.active;
-    obj.id = this.id;
-
-    wx.setStorageSync("first", JSON.stringify(obj));
-
-    this.gounum();
+  mounted() {},
+  //  上拉触底 加载
+  onReachBottom() {
+    console.log("触底");
+    if (this.page < this.totalPage) {
+      this.page += 1;
+      this.addRecommend();
+    } else {
+      this.more = true;
+    }
   },
   methods: {
-    firstTO() {
-      this.id = "";
-      this.active = 0;
-      this.initLoad(this.id);
+    // getNum() {
+    //   let parmas = {
+    //     cmd: "cartCount",
+    //     cid: this.cid
+    //   };
+    //   Request.postRequest(parmas).then(res => {
+    //     let result=res.totalCount+''
+    //     console.log(result);
+    //     wx.setTabBarBadge({
+    //       index: 3,
+    //       text: result
+    //     });
+    //   });
+    // },
+    getformid(e) {
+      console.log(e);
+      this.fromid = e.mp.detail.formId;
     },
-    gounum() {
-      //   消息数量
-      let datas = {
-        cmd: "cartCount",
-        cid: this.cid
-      };
-      Request.postRequest(datas)
-        .then(res => {
-          console.log(res);
-          if (res.result == 0) {
-            this.gou = res.totalCount;
-          }
-        })
-        .catch(res => {});
-    },
-    //  下拉 刷新事件
-    onPullDownRefresh() {
-      setTimeout(() => {
-        this.addRecommend();
-        this.initLoad(this.id);
-      }, 500);
-    },
-    //  上拉触底 加载
-    onReachBottom() {
-      // 异步更新数据
-      setTimeout(() => {
-        if (this.page < this.totalPage) {
-          this.page++;
-          this.addRecommend();
-        }
-      }, 2000);
-    },
-    diao() {
-      // self.donghua = true;
-      //调用一级分类导
-      if (wx.getStorageSync("cateTAB")) {
-        this.cate1 = JSON.parse(wx.getStorageSync("cateTAB"));
-         this.active = 0
-          this.id = this.cate1[0].id
-          this.initLoad(this.id);
-      }
-
-      let datas = {
-        cmd: "goodsCategoryInit",
-        uid: this.cid
-      };
-      Request.postRequest(datas)
-        .then(res => {
-          // console.log(res);
-          if (res.result == 0) {
-            this.cate1 = [{ id: "", name: "推荐" }];
-            for (let i = 0; i < res.dataList.length; i++) {
-              this.cate1.push(res.dataList[i]);
-            }
-            console.log(this.cate1);
-
-            // console.log(self.cate1);
-            wx.setStorageSync("cateTAB", JSON.stringify(this.cate1));
-            this.initLoad(this.id);
-          }
-        })
-        .catch(res => {});
-    },
-    inits() {},
-    init() {},
     initLoad(id) {
-        //处理初始化页面数据缓存开始
-        let self = this;
-        let datas = {
-          cmd: "recommendGoods",
-          id: id,
-          pageNow: this.page
-        };
-        // sessionStorage.getItem("cateTAB")
-        let cateTAB = JSON.parse(wx.getStorageSync("cateTAB"))
-        for (let i = 0; i < cateTAB.length; i++) {
-          if (id == cateTAB[i].id) {
-            if (cateTAB[i].list) {
-              self.datas = cateTAB[i].list.child
-              self.images = cateTAB[i].list.rotationChart
-              self.totalPage = cateTAB[i].list.totalPage
-              self.recommendList = cateTAB[i].list.order
-              self.dataList = cateTAB[i].list.discount
-            } else {
-              cateTAB[i].list = {}
-              Request.postRequest(datas).then(res => {
-                console.log(res)
-                if (res.result == 0) {
-                  self.datas = res.child
-                  self.images = res.rotationChart
-                  self.totalPage = res.totalPage
-                  self.dataList = res.discount
-                  self.recommendList = res.order
-                  cateTAB[i].list.child = res.child
-                  cateTAB[i].list.rotationChart = res.rotationChart
-                  cateTAB[i].list.totalPage = res.totalPage
-                  cateTAB[i].list.discount = res.discount
-                  cateTAB[i].list.order = res.order
-                  wx.setStorageSync("cateTAB", JSON.stringify(cateTAB))
-                  // sessionStorage.setItem("cateTAB", JSON.stringify(cateTAB))
-                  // self.donghua = false
-                }
-              }).catch(res => {})
-            }
+      //处理初始化页面数据缓存开始
+      let self = this;
+      // console.log(id);
+      let cateTAB = JSON.parse(wx.getStorageSync("cateTAB"));
+      for (let i = 0; i < cateTAB.length; i++) {
+        if (id == cateTAB[i].id) {
+          console.log(cateTAB[i]);
+          self.showtarba = true;
+          self.direct = 1;
+          if (cateTAB[i].list) {
+            self.datas = cateTAB[i].list.child;
+            self.images = cateTAB[i].list.rotationChart;
+            self.totalPage = cateTAB[i].list.totalPage;
+            self.recommendList = cateTAB[i].list.order;
+            self.dataList = cateTAB[i].list.discount;
           }
-        }
-        //处理初始化页面数据缓存结束
+          // else {
+          let datas = {
+            cmd: "recommendGoods",
+            id: id,
+            pageNow: self.page
+          };
+          Request.postRequest(datas)
+            .then(res => {
+              console.log(res);
+              if (res.result == 0) {
+                cateTAB[i].list = {};
+                self.datas = res.child;
+                self.images = res.rotationChart;
+                self.totalPage = res.totalPage;
+                self.dataList = res.discount;
+                self.recommendList = res.order;
+                cateTAB[i].list.child = res.child;
+                cateTAB[i].list.rotationChart = res.rotationChart;
+                cateTAB[i].list.totalPage = res.totalPage;
+                cateTAB[i].list.discount = res.discount;
+                cateTAB[i].list.order = res.order;
+                wx.setStorageSync("cateTAB", JSON.stringify(cateTAB));
+              }
+            })
+            .catch(res => {});
+          // }
 
-        //打折商品调用
+          // }
+        } else if (id == cateTAB[i].type) {
+          self.showtarba = false;
+          self.direct = id;
+          let parmas = {
+            cmd: "pinTuanPage",
+            pageNow: self.page,
+            type: id
+          };
+          Request.postRequest(parmas)
+            .then(res => {
+              console.log(res);
+              if (res.result == 0) {
+                // cateTAB[i].list = {};
+                self.datas = res.child;
+                self.totalPage = res.totalPage;
+                self.dataList = res.discount;
+                self.recommendList = res.order;
+                //   console.log(self.dataList)
+                // if(res.discount!=[]){
+                // cateTAB[i].list.discount = res.discount;
+                // }
+                // cateTAB[i].list.child = res.child;
+                // cateTAB[i].list.totalPage = res.totalPage;
+
+                // cateTAB[i].list.order = res.order;
+                // wx.setStorageSync("cateTAB", JSON.stringify(cateTAB));
+              }
+            })
+            .catch(res => {});
+          // }
+        }
+      }
+      console.log(self.page, self.totalPage);
+      //处理初始化页面数据缓存结束
+
+      //打折商品调用
+      if (self.showtarba) {
         let discount = {
           cmd: "discountGoods",
           pageNow: 1
         };
-        Request.postRequest(discount).then(res => {
-          console.log(res);
-          if (res.result == 0) {
-            self.list = res.discount;
-            wx.setStorageSync("discount", JSON.stringify(self.list));
-            // localStorage.setItem("discount", JSON.stringify(self.list));
-            this.more = true;
-          }
-        }).catch(res => {})
-      },
+        Request.postRequest(discount)
+          .then(res => {
+            console.log(res);
+            if (res.result == 0) {
+              self.list = res.discount;
+              // wx.setStorageSync("discount", JSON.stringify(self.list));
+            }
+          })
+          .catch(res => {});
+      }
+    },
+    diao() {
+      if (wx.getStorageSync("cateTAB")) {
+        this.cate1 = JSON.parse(wx.getStorageSync("cateTAB"));
+        this.active = 0;
+        this.id = this.cate1[0].type;
+        this.initLoad(this.id);
+      } else {
+        let datas = {
+          cmd: "goodsCategoryInit",
+          uid: ""
+        };
+        console.log(datas);
+        Request.postRequest(datas)
+          .then(res => {
+            if (res.result == 0) {
+              console.log(res);
+              this.cate1 = [
+                { type: "100", name: "拼团" },
+                { type: "200", name: "拿货团" },
+                { id: "", name: "推荐" }
+              ];
+              // let self=this;
+              for (let i in res.dataList) {
+                this.cate1.push(res.dataList[i]);
+              }
+              setTimeout(() => {
+                this.id = this.cate1[0].type;
+                this.initLoad(this.id);
+              }, 30);
 
+              wx.setStorageSync("cateTAB", JSON.stringify(this.cate1));
+            }
+          })
+          .catch(res => {});
+      }
+    },
+
+    getCurLocation() {
+      let self = this;
+      wx.showLoading({
+        title: "定位中，请稍后..",
+        icon: "none"
+      });
+
+      wx.getLocation({
+        type: "gcj02",
+        success(res) {
+          console.log(res);
+          wx.setStorageSync("point", JSON.stringify(res));
+          wx.hideLoading();
+          wx.showToast({
+            title: "定位成功",
+            icon: "none"
+          });
+          // console.log(res);
+          self.qqMapSdk.reverseGeocoder({
+            location: {
+              latitude: res.latitude,
+              longitude: res.longitude
+            },
+            success(res) {
+              console.log(res.result);
+              self.city = res.result.ad_info.city;
+            }
+          });
+          self.qqMapSdk.search({
+            keyword: "住宅小区",
+            location: {
+              latitude: res.latitude,
+              longitude: res.longitude
+            },
+            success(res) {
+              console.log(res);
+              self.current = res.data[0].title;
+            }
+          });
+        }
+      });
+    },
+
+    //  数据加载更多
     addRecommend() {
       let self = this;
-      if (self.id == undefined) {
-        self.id = "";
+      console.log(1, self.page, self.totalPage);
+      let datas = {};
+      // if (self.page < self.totalPage) {
+      // self.page += 1;
+      if (!this.showtarba) {
+        console.log("打折加载");
+        datas = {
+          cmd: "pinTuanPage",
+          pageNow: self.page,
+          type: self.id
+        };
+      } else {
+        datas = {
+          cmd: "recommendGoods",
+          id: self.id,
+          pageNow: self.page
+        };
       }
-      let datas = {
-        cmd: "recommendGoods",
-        id: self.id,
-        pageNow: self.page
-      };
       console.log(datas);
       Request.postRequest(datas)
         .then(res => {
           console.log("加油" + res);
+          // self.totalPage = res.totalPage;
           if (res.result == 0) {
-            if (self.page <= res.totalPage) {
-              self.loading = true;
-              for (let i = 0; i < res.order.length; i++) {
-                self.recommendList.push(res.order[i]);
-              }
-              self.page++;
-              // 加载状态结束
-              self.loading = false;
-            } else {
-              self.loading = false;
-              self.more = true;
+            for (let i in res.order) {
+              self.recommendList.push(res.order[i]);
             }
           }
         })
         .catch(res => {});
+      // } else {
+      //   this.more = true;
+      // }
     },
     clear() {
       this.page = 1;
-      this.loading = false;
       this.more = false;
       this.list = [];
       this.datas = [];
       this.images = [];
       this.dataList = [];
       this.recommendList = [];
+      this.totalPage = 1;
     },
-    changeTab(k) {
-      this.clear();
-      this.id = this.cate1[this.active].id;
-      console.log(this.id);
-      this.initLoad(this.id);
-      let obj = {};
-      obj.num = this.active;
-      obj.id = this.id;
-      wx.setStorageSync("first", JSON.stringify(obj));
+    nouser() {
+      wx.showModal({
+        title: "温馨提醒！",
+        content: "你还没有绑定手机号,请先绑定手机号,确认信息",
+        showCancel: false,
+        success: function(res) {
+          if (res.confirm) {
+            wx.navigateTo({
+              url: "/pages/bind/bindtell"
+            });
+          }
+        }
+      });
+    },
+    // 选择附近社区
+    choseNearBy() {
+      if (this.cid == undefined) {
+        this.nouser();
+      } else {
+        wx.navigateTo({
+          url: "/pages/pintuan/nearbytuan"
+        });
+      }
     },
     changeIng(k) {
       let ind = k.target.index;
+      console.log(k);
       this.clear();
-      this.id = this.cate1[ind].id;
-
+      if (this.cate1[ind].id != undefined) {
+        this.id = this.cate1[ind].id;
+      } else {
+        this.id = this.cate1[ind].type;
+      }
+      console.log(this.id);
       this.initLoad(this.id);
       this.active = ind;
-      // let obj = {};
-      // obj.num = this.active;
-      // obj.id = this.id;
-      // wx.setStorageSync("first", JSON.stringify(obj));
     },
     goSearch() {
       this.$router.push("/pages/search/index");
     },
     goMessage() {
-      // wx.setStorageSync("Messageurl", JSON.stringify("first"));
-      this.$router.push("/pages/my/message");
-    },
-    infoList(id) {
-      let datas = {
-        cmd: "infoList",
-        cid: id,
-        pageNow: 1
-      };
-      Request.postRequest(datas)
-        .then(res => {
+      if (this.cid == undefined) {
+        this.nouser();
+      } else {
+        let parmas = {
+          cmd: "uploadFormid",
+          uid: this.cid,
+          fromid: this.fromid
+        };
+        console.log(this.fromid);
+        Request.postRequest(parmas).then(res => {
           if (res.result == 0) {
-            console.log(res.dataList);
-            for (var i in res.dataList) {
-              if (res.dataList[i].read == 0) {
-                this.xiaoxi = true;
-              } else {
-                this.xiaoxi = false;
-              }
-            }
+            console.log(res);
+            console.log(JSON.stringify(res));
+            this.$router.push("/pages/my/message");
           }
-        })
-        .catch(res => {});
+        });
+      }
     },
+    // infoList(id) {
+    //   let datas = {
+    //     cmd: "infoList",
+    //     cid: id,
+    //     pageNow: 1
+    //   };
+    //   Request.postRequest(datas)
+    //     .then(res => {
+    //       if (res.result == 0) {
+    //         console.log(res.dataList);
+    //         for (var i in res.dataList) {
+    //           if (res.dataList[i].read == 0) {
+    //             this.xiaoxi = true;
+    //           } else {
+    //             this.xiaoxi = false;
+    //           }
+    //         }
+    //       }
+    //     })
+    //     .catch(res => {});
+    // },
     chakan(v) {
       console.log(v);
       console.log(this.id);
-      if (v == "推荐" || v == "拼团" || v == "拿货团") {
+      if (this.id == 100 || this.id == 200) {
         wx.navigateTo({
-          url: "/pages/discount/discountList?params=" + this.id
+          url: "/pages/discount/pintuanList?id=" + this.id
+        });
+      } else if (this.id == "") {
+        wx.navigateTo({
+          url: "/pages/discount/discountList?id=" + this.id
         });
       } else {
         wx.navigateTo({
-          url: "/pages/discount/goodFood?params=" + this.id
+          url: "/pages/discount/goodFood?id=" + this.id
         });
       }
-
-      // wx.setStorageSync("params", JSON.stringify(params));
-      // this.$router.push("/pages/discount/discountList");
     },
     //
     detail(k) {
       console.log(k);
-      wx.navigateTo({
-        url: "../Good/gooddetials?id=" + k
-      });
+      let obj = {};
+      obj.id = k;
+      if (this.direct == 100) {
+        obj.type = 1;
+        wx.navigateTo({
+          url: "/pages/pintuan/gooddetailspin?id=" + JSON.stringify(obj)
+        });
+      } else if (this.direct == 200) {
+        obj.type = 2;
+        wx.navigateTo({
+          url: "/pages/Good/gooddetials?id=" + JSON.stringify(obj)
+        });
+      } else {
+        obj.type = 0;
+        wx.navigateTo({
+          url: "/pages/Good/gooddetials?id=" + JSON.stringify(obj)
+        });
+      }
     },
     //购物车图标
     shopcart(v) {
-      console.log(v);
-      // this.cid = "b94cb0c7d5544b268727b6e3a2ac9a06";
-      let datas = {
-        cmd: "addToCar",
-        gid: v.id,
-        cid: this.cid,
-        specifications: v.skuId,
-        number: 1
-      };
-      Request.postRequest(datas)
-        .then(res => {
-          console.log(res);
-          if (res.result == 0) {
-            wx.showToast({
-              title: "添加购物车成功"
-            });
-            // this.gounum();
-            // this.donghua = false;
-          }
-        })
-        .catch(res => {});
+      console.log(1);
+      if (this.cid == undefined) {
+        this.nouser();
+      } else {
+        let datas = {
+          cmd: "addToCar",
+          gid: v.id,
+          cid: this.cid,
+          specifications: v.skuId,
+          number: 1
+        };
+        Request.postRequest(datas)
+          .then(res => {
+            console.log(res);
+            if (res.result == 0) {
+              wx.showToast({
+                title: "添加购物车成功"
+              });
+              this.gounum();
+              // this.donghua = false;
+            }
+          })
+          .catch(res => {});
+      }
     }
   }
 };
 </script>
+<style>
+.formid {
+  border: none;
+  outline: none;
+  opacity: 0;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+.van-tabs {
+  position: fixed;
+  top: 50px;
+  z-index: 9999;
+}
+page {
+  width: 100%;
+  min-height: 100%;
+  background: #fafafa;
+}
+</style>
 
 <style scoped lang="stylus" rel="stylesheet/stylus">
-._van-tabs__wrap {
-  position: fixed !important;
-  top: 30px;
-}
-
-.van-tab--active {
-  color: rgb(114, 209, 65);
-}
-
 .list {
   width: 100%;
   display: flex;
   flex-direction: column;
-  background: #fff;
-  margin-top: 0.5rem;
 
+  // background: #fff;
+
+  // margin-top: 0.5rem;
   h3 {
     width: 100%;
     height: 60px;
@@ -434,14 +606,15 @@ export default {
     text-align: center;
     font-size: 16px;
     color: #333;
-    background: rgb(250, 250, 250);
+    // background: rgb(250, 250, 250);
   }
 
   .list-box {
     width: 100%;
 
+    // background:#eee;
     li {
-      width: 90%;
+      width: 100%;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -450,7 +623,7 @@ export default {
 
       img {
         width: 2.5rem;
-        height: 2.5rem;
+        height: 1.25rem;
       }
 
       .list-content {
@@ -530,20 +703,11 @@ export default {
   font-size: 12px;
   color: #999999;
   text-align: center;
-}
-
-.loading {
-  width: 100%;
-  height: 1.2rem;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 14px;
-  color: #999;
+  // background: #fff;
 }
 
 .head {
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
   width: 100%;
@@ -551,13 +715,13 @@ export default {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 0.4rem 0;
+  padding-left: 0.2rem;
   box-sizing: border-box;
   background: rgb(114, 209, 65);
   z-index: 9999;
 
   .dian {
-    position: fixed;
+    position: absolute;
     top: 24px;
     right: 17px;
     border-radius: 50%;
@@ -571,28 +735,35 @@ export default {
     height: 50px;
     display: flex;
     align-items: center;
+    position: relative;
 
     img {
-      width: 0.4rem;
-      height: 0.5rem;
+      width: 0.3rem;
+      height: 0.4rem;
     }
 
     span {
+      width: 65px;
       font-size: 14px;
       color: #fff;
-      margin-left: 0.3rem;
+      margin-left: 0.1rem;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      white-space: nowrap;
     }
   }
 
   .search {
-    width: 65%;
+    width: 60%;
     height: 36px;
     border-radius: 50px;
     background: rgb(169, 228, 138);
     display: flex;
     align-items: center;
-    justify-content: center;
+    padding-left: 15px;
+    margin-left: 5px;
 
+    // justify-content: center;
     img {
       width: 0.3rem;
       height: 0.3rem;
@@ -604,26 +775,34 @@ export default {
       color: #fff;
       background: none;
       border: none;
-      margin-left: 0.3rem;
+      margin-left: 0.2rem;
     }
   }
 
-  img {
-    width: 0.4rem;
-    height: 0.5rem;
+  .message {
+    flex: 1;
+    margin-left: 0.1rem;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+
+    img {
+      width: 0.3rem;
+      height: 0.4rem;
+    }
   }
 }
 
 .contain {
   width: 100%;
-  height: 100%;
-  padding-top: 60px;
 }
 
 .wrapper {
   width: 100%;
-  height: auto;
 
+  // height: auto;
   .swipe {
     width: 100%;
     height: 180px;

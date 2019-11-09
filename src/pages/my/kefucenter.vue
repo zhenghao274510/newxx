@@ -1,6 +1,5 @@
 <template>
 	<div class="service-box">
-		<!-- <main-header :text="text" @back="back"></main-header> -->
 		<div class="service-zi">
 			<div class="Qr-code">
 				<div>
@@ -17,9 +16,8 @@
 					<span class="li1">网址</span>
 					<span class="li2">{{website}}</span>
 				</li>
-				<li>
+				<li @click="tell">
 					<span class="li1">客服电话</span>
-					<a :href="'tel://'+phone"></a>
 					<span class="li2" style="color:#72D241">一键拨号</span>
 				</li>
 				<li>
@@ -47,13 +45,21 @@
 		},
 		components: {
 		},
-		created() {
-		
+		onLoad() {
+		  wx.setNavigationBarTitle({
+      title: "客服中心"
+    });
 		},
 		mounted() {
 			this.service();
 		},
 		methods: {
+			tell(){
+				let self=this;
+      wx.makePhoneCall({
+        phoneNumber:self.phone
+      })
+			},
 			service() {
 				let goCarlist = {
 					cmd: "serviceCenter"
@@ -72,12 +78,7 @@
 					.catch(res => {
 
 					});
-			},
-			back() {
-				// this.$router.push("/pages/my/main");
-			},
-			dial(e) {
-      }
+			}
     }
 	};
 </script>

@@ -1,6 +1,12 @@
 <template>
   <div class="list">
-    <main-header :text="text" @back="back"></main-header>
+
+      <div class="search">
+        <div class="search_input">
+        <input confirm-type="search" v-model="keywords" placeholder="请输入商品名称">
+      </div>
+      <span @click="goSearch">搜索</span>
+      </div>
     <div class="shop">
       <van-tabs
         v-model="active"
@@ -75,14 +81,12 @@
 </template>
 
 <script>
-import MainHeader from "@/components/mainHeader";
-import Recommendfen from "@/components/recommendfen";
+import recommendfen from "@/components/recommendfen";
 import Request from "@/common/js/request";
 
 export default {
   data() {
     return {
-      text: "分类名称",
       active: 0,
       list: [],
       isLoading: false,
@@ -94,19 +98,19 @@ export default {
       show: false,
       recommend: [],
       id: "",
-      ink: ""
+      ink: "",
+      keywords:''
     };
   },
   components: {
-    Recommendfen,
-    MainHeader
+    recommendfen
   },
   onLoad(options) {
-    this.id = options.id;
-    console.log(this.id);
+    this.keywords = options.id;
+    console.log(this.keywords);
   },
   mounted() {
-    this.initDta();
+    this.initDta(this.keywords);
   },
   computed: {
     showList() {
@@ -114,54 +118,54 @@ export default {
     }
   },
   methods: {
-    back() {
-      this.$router.push("/classify");
-    },
-    onRefresh: function() {
-      var self = this;
-      this.list = [];
-      this.page = 1;
-      this.finished = false;
-      this.beginLoading();
-      setTimeout(function() {
-        Toast("刷新成功");
-        self.isLoading = false;
-      }, 500);
-    },
-    initDta() {
+    initDta(keywords) {
       this.list=[];
       let Category = {
-        cmd: "selectGoodsByCategory",
+        cmd: "selectGoodsByName",
         orderType: this.sorts,
-        id: this.id,
-        pageNow: this.page
+        name: keywords,
+        pageNow: this.page,
+        flag:'1'
       };
       console.log(Category);
       Request.postRequest(Category)
         .then(res => {
           console.log(res);
           if (res.result == 0) {
-            this.text = res.categoryName;
             this.totalPage = res.totalPage;
             if (this.page <= res.totalPage) {
-              for (var i = 0; i < res.dataList.length; i++) {
+              for (let i in res.dataList) {
                 this.list.push(res.dataList[i]);
               }
-            }
-          } else if (res.dataList !== undefined || res.dataList.length == 0) {
+            }else if (res.dataList.length== 0) {
             this.show = true;
           }
+          } 
         })
         .catch(res => {});
+    },
+     goSearch() {
+      console.log(this.keywords ,"....."+this.value)
+
+      if (this.keywords == "") {
+        wx.showToast({
+          title: "搜索内容不能为空",
+          icon:'none'
+        });
+        return;
+      } else {
+        this.initDta(this.keywords);
+      }
     },
 
     beginLoading() {
       if (this.page < this.totalPage) {
         this.page += 1;
-        this.initDta();
+        this.initDta(this.keywords);
       } else {
         wx.showToast({
-          title: "没有更多了"
+          title: "没有更多了",
+          icon:'none'
         });
       }
     },
@@ -171,7 +175,7 @@ export default {
       } else {
         this.sorts = k.target.index;
         this.clear();
-        this.initDta();
+        this.initDta(this.keywords);
       }
       console.log(k.target.index);
       // let self = this;
@@ -213,7 +217,33 @@ export default {
     width: 100%;
     display: flex;
     flex-direction: column;
-    padding-top: 50px;
   }
 }
+.search{
+   width: 100%;
+    height: 40px;
+    padding: 0 15px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+     .search_input {
+      width: 60%;
+      background:#e5e5ee;
+      input{
+        width:100%;
+        height:30px;
+        padding-left:10px;
+        font-size:13px;
+     
+      }
+    }
+
+    span {
+      font-size: 14px;
+      color: #333;
+      margin-left:20px;
+    }
+}
+
 </style>

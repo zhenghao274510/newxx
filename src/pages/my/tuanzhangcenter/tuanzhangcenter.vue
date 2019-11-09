@@ -2,13 +2,13 @@
   <div class="containter">
     <div class="topinfo">
       <div class="useinfo">
-        <img src="/static/img/touxiang2.png" alt />
+        <img :src="useObj.icon" alt style="border-radius: 50%;" />
         <div class="usemain">
-          <p>团长昵称：12312</p>
-          <p class="shequ">绑定社区：</p>
+          <p>{{useObj.nickname}}</p>
+          <p class="shequ">{{useObj.neighbourhood}}</p>
         </div>
-        <div class="change">
-          <a href="/pages/my/tuanzhangcenter/changeinfo">
+        <div class="change" @click="enter">
+          <a>
             <van-icon name="edit" size="14px" color="#fff" />
             <span style="color:#fff;">编辑</span>
           </a>
@@ -18,13 +18,13 @@
         <div class="usemoney">
           <div>
             <p class="one">余额</p>
-            <p class="nummoney">4343</p>
+            <p class="nummoney">{{useObj.balance}}</p>
           </div>
           <div>
             <a href="/pages/my/tuanzhangcenter/getmoney">
               <span>提现</span>
             </a>
-            <a href="/pages/my/moneydetails">
+            <a @click="detials(0)">
               <span>明细</span>
             </a>
           </div>
@@ -33,7 +33,7 @@
           <div class="top-nav">
             <div class="top-head">
               <span>社区订单</span>
-              <div class="top-right">
+              <!-- <div class="top-right">
                 <span>
                   <a @click="gotoall(0)">全部订单</a>
                 </span>
@@ -42,15 +42,15 @@
                   src="/static/img/jinru02.png"
                   alt
                 />
-              </div>
+              </div>-->
             </div>
             <div class="top-bar">
               <van-tabbar :fixed="false" active-color="#666">
                 <van-tabbar-item
                   to
-                  :info="pendPayNumber"
-                  v-if="pendPayNumber>0"
-                  @click="gotoall(1)"
+                  :info="useObj.pendSendNum"
+                  v-if="useObj.pendSendNum>0"
+                  @click="gotoall(0)"
                 >
                   <span>
                     已下单
@@ -58,7 +58,7 @@
                   </span>
                   <img slot="icon" slot-scope="props" src="/static/img/daifukuan.png" />
                 </van-tabbar-item>
-                <van-tabbar-item to v-else @click="gotoall(1)">
+                <van-tabbar-item to v-else @click="gotoall(0)">
                   <span>
                     已下单
                     <!-- <a :href="'/pages/order/all'+1">待付款</a> -->
@@ -67,9 +67,9 @@
                 </van-tabbar-item>
                 <van-tabbar-item
                   to
-                  :info="pendSendNumber"
-                  v-if="pendSendNumber>0"
-                  @click="gotoall(2)"
+                  :info="useObj.pendReceiveNum"
+                  v-if="useObj.pendReceiveNum>0"
+                  @click="gotoall(1)"
                 >
                   <span>
                     待收货
@@ -77,7 +77,7 @@
                   </span>
                   <img slot="icon" slot-scope="props" src="/static/img/daifahuo.png" />
                 </van-tabbar-item>
-                <van-tabbar-item to v-else @click="gotoall(2)">
+                <van-tabbar-item to v-else @click="gotoall(1)">
                   <span>
                     待收货
                     <!-- <a :href="'/pages/order/all/'+2">待发货</a> -->
@@ -86,9 +86,9 @@
                 </van-tabbar-item>
                 <van-tabbar-item
                   to
-                  :info="pendReceiveNumber"
-                  v-if="pendReceiveNumber>0"
-                  @click="gotoall(3)"
+                  :info="useObj.pendGetNum"
+                  v-if="useObj.pendGetNum>0"
+                  @click="gotoall(2)"
                 >
                   <span>
                     待取货
@@ -96,7 +96,7 @@
                   </span>
                   <img slot="icon" slot-scope="props" src="/static/img/daishouhuo.png" />
                 </van-tabbar-item>
-                <van-tabbar-item to v-else @click="gotoall(3)">
+                <van-tabbar-item to v-else @click="gotoall(2)">
                   <span>
                     待取货
                     <!-- <a :href="'/pages/order/all/'+3">待收货</a> -->
@@ -105,9 +105,9 @@
                 </van-tabbar-item>
                 <van-tabbar-item
                   to
-                  :info="pendEvaluateNumber"
-                  v-if="pendEvaluateNumber>0"
-                  @click="gotoall(4)"
+                  :info="useObj.finishNum"
+                  v-if="useObj.finishNum>0"
+                  @click="gotoall(3)"
                 >
                   <span>
                     已完成
@@ -115,7 +115,7 @@
                   </span>
                   <img slot="icon" slot-scope="props" src="/static/img/daipingjia.png" />
                 </van-tabbar-item>
-                <van-tabbar-item to v-else @click="gotoall(4)">
+                <van-tabbar-item to v-else @click="gotoall(3)">
                   <span>
                     已完成
                     <!-- <a :href="'/pages/order/all/'+4">待评价</a> -->
@@ -124,9 +124,9 @@
                 </van-tabbar-item>
                 <van-tabbar-item
                   to
-                  :info="afterSaleNumber"
-                  v-if="afterSaleNumber>0"
-                  @click="gotoall(5)"
+                  :info="useObj.afterSaleNumber"
+                  v-if="useObj.afterSaleNumber>0"
+                  @click="gotoall(4)"
                 >
                   <span>
                     退款/售后
@@ -134,7 +134,7 @@
                   </span>
                   <img slot="icon" slot-scope="props" src="/static/img/tuikuanshouhou.png" />
                 </van-tabbar-item>
-                <van-tabbar-item to v-else @click="gotoall(5)">
+                <van-tabbar-item to v-else @click="gotoall(4)">
                   <span>
                     退款/售后
                     <!-- <a :href="'/pages/order/TuiShop/'+5">退款/售后</a> -->
@@ -149,25 +149,25 @@
         <div class="usemoneydetials">
           <p class="title">数据看板</p>
           <ul class="active_order">
-            <li>
-              <p class="money"></p>
+            <li @click="goto">
+              <p class="money">{{useObj.todayOrder}}</p>
               <p class="newday">今日</p>
               <p>有效订单(单)</p>
             </li>
             <li>
-              <p class="money"></p>
+              <p class="money">{{useObj.todayDealMoney}}</p>
               <p class="newday">今日</p>
               <p>有效成交额(元)</p>
             </li>
-            <li>
-              <p class="money"></p>
+            <li @click="detials(1)">
+              <p class="money">{{useObj.todayPendSettle}}</p>
               <p class="newday">今日</p>
               <p>待结算佣金(元)</p>
             </li>
           </ul>
           <div class="history">
-            <p>本月总收益:</p>
-            <p>历史总收益:</p>
+            <p>本月总收益:{{useObj.monthProfit}}</p>
+            <p>历史总收益:{{useObj.historyProfit}}</p>
           </div>
         </div>
       </div>
@@ -177,10 +177,23 @@
 
 <script>
 //import 《组件名称》 from '《组件路径》';
-
+import Request from "@/common/js/request";
 export default {
   data() {
-    return {};
+    return {
+      nickname: "", //昵称
+      mobile: "", //手机号
+      icon: "", //头像
+      afterSaleNumber: "", //退款 售后
+      pendGetNum: "", //待取货
+      pendReceiveNum: "", //待收货
+      pendSendNum: "", //已下单数目
+      useryin: false,
+      gou: 0,
+      cid: "",
+      neighbourhood: "", // 小区名称
+      useObj: {}
+    };
   },
   //监听属性 类似于data概念
   computed: {},
@@ -191,40 +204,86 @@ export default {
   //生命周期 - 创建完成（可以访问当前this实例）
   created() {},
   //生命周期 - 挂载完成（可以访问DOM元素）
+  onLoad() {
+    wx.setNavigationBarTitle({
+      title: "团长中心"
+    });
+    this.cid = JSON.parse(wx.getStorageSync("user")).cid;
+  },
   mounted() {},
+  onShow() {
+    if (wx.getStorageSync("leaderInfo")) {
+      this.useObj = JSON.parse(wx.getStorageSync("leaderInfo"));
+    } else {
+      this.info();
+    }
+  },
   //方法集合
   methods: {
-    // 返回
-    back() {},
+    enter() {
+      console.log(111)
+      wx.setStorageSync("leaderInfo", JSON.stringify(this.useObj));
+      setTimeout(() => {
+        wx.navigateTo({
+          url: "/pages/my/tuanzhangcenter/changeinfo"
+        });
+      }, 100);
+    },
+    goto() {
+      wx.navigateTo({
+        url: "/pages/my/tuanzhangcenter/todayDetails?id="+this.useObj.leaderid
+      });
+    },
+    info() {
+      let parmas = {
+        cmd: "leaderInfo",
+        cid: this.cid
+      };
+      console.log(parmas);
+      Request.postRequest(parmas)
+        .then(res => {
+          if (res.result == 0) {
+            console.log(res);
+            // wx.setStorageSync("leaderInfo", JSON.stringify(res));
+            this.useObj = res;
+          }
+        })
+        .catch(err => {});
+    },
     //  修改
     change() {},
     // 提现
     getMoney() {},
     //   明细
-    lookDetails() {},
+    lookDetails() {
+      wx.navigateTo({
+        url: "/pages/my/tuanzhangcenter/todayDetails"
+      });
+    },
     gotoall(m) {
-      console.log(m)
-      switch(m){
+      console.log(m);
+      switch (m) {
         case 0:
-        wx.navigateTo({url:'/pages/order/shequorder?id='+0});
-        break;
-         case 1:
-        wx.navigateTo({url:'/pages/order/shequorder?id='+1});
-        break;
-         case 2:
-        wx.navigateTo({url:'/pages/order/shequorder?id='+2});
-        break;
-         case 3:
-        wx.navigateTo({url:'/pages/order/shequorder?id='+3});
-        break;
-         case 4:
-        wx.navigateTo({url:'/pages/order/shequorder?id='+4});
-        break;
-         case 5:
-        wx.navigateTo({url:'/pages/order/TuiShop'});
-        break;
-
+          wx.navigateTo({ url: "/pages/order/shequorder?id=" + 0 });
+          break;
+        case 1:
+          wx.navigateTo({ url: "/pages/order/shequorder?id=" + 1 });
+          break;
+        case 2:
+          wx.navigateTo({ url: "/pages/order/shequorder?id=" + 2 });
+          break;
+        case 3:
+          wx.navigateTo({ url: "/pages/order/shequorder?id=" + 3 });
+          break;
+        case 4:
+          wx.navigateTo({ url: "/pages/order/shequTui?leaderid="+this.useObj.leaderid });
+          break;
       }
+    },
+    detials(k) {
+      wx.navigateTo({
+        url: "/pages/my/tuanzhangcenter/zhangdan?id=" + k
+      });
     }
   },
   //生命周期 - 创建之前
@@ -244,13 +303,16 @@ export default {
 };
 </script>
 <style>
-page{
+page {
   background: #f5f5f5;
 }
-
+.van-hairline--top-bottom::after {
+  border: none !important;
+}
 </style>
 <style scoped lang="stylus">
-.containter {
+.top-bar {
+  padding: 15px 0;
 }
 
 .topinfo {
@@ -341,46 +403,49 @@ page{
   }
 
   .usemoneydetials {
-    padding: 0 10px;
+    padding: 0 30px;
     width: 100%;
     box-sizing: border-box;
-    margin-top:15px;
-    background:#fff;
-    color:#1A1A1A;
+    margin-top: 15px;
+    background: #fff;
+    color: #1A1A1A;
+
     .title {
       font-size: 16px;
-      line-height:50px;
-      border-bottom:1px solid #E8E8E8;
+      line-height: 50px;
+      border-bottom: 1px solid #E8E8E8;
     }
 
     ul {
       padding: 20px 0;
       display: flex;
-      justify-content: space-around;
+      justify-content: space-between;
       align-items: center;
 
       li {
-        flex:1;
+        flex: 1;
 
         p {
           line-height: 25px;
           font-size: 12px;
         }
-        .newday{
-         color:#666666;
-         font-size:11px;
+
+        .newday {
+          color: #666666;
+          font-size: 11px;
         }
-        .money{
-          font-size:14px;
-          line-height:35px;
+
+        .money {
+          font-size: 14px;
+          line-height: 35px;
         }
       }
     }
   }
 
   .history {
-    padding: 20px 10px;
-    color:#1A1A1A;
+    // padding: 20px 10px;
+    color: #1A1A1A;
 
     p {
       font-size: 12px;
@@ -414,5 +479,4 @@ page{
     }
   }
 }
-
 </style>

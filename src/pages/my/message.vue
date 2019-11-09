@@ -1,36 +1,27 @@
 <template>
-  <div class="list" >
-    <van-list
-      v-model="loading"
-      :finished="finished"
-      finished-text="没有更多了"
-      @load="beginLoading"
-      v-if="showMsg"
-    >
-      <van-pull-refresh v-model="isLoading" @refresh="onRefresh">
-        <div class="msg-box">
-          <ul class="msg">
-            <li v-for="(v,k) in msg" :key="k" @click="goDetail(v,v.id)">
-              <div class="xiaoxian">
-                <img src="/static/img/xiaoxi01.png" alt />
-                <b class="xiaob" v-if="v.read==0"></b>
-              </div>
-              <div class="msg-right">
-                <div class="msg-top">
-                  <h3>{{v.title}}</h3>
-                  <span>{{v.adtime}}</span>
-                </div>
-                <div class="msg-bottom">
-                  <p>{{v.content}}</p>
-                  <img src="/static/img/delete.png" alt @click.stop="del(k,v.id)" />
-                </div>
-              </div>
-            </li>
-          </ul>
-        </div>
-      </van-pull-refresh>
-    </van-list>
-    <div class="systom" v-if="show">暂没有系统消息</div>
+  <div class="list">
+    <div class="msg-box">
+      <ul class="msg">
+        <li v-for="(v,k) in msg" :key="k" @click.stop="goDetail(v,v.id)">
+          <div class="xiaoxian">
+            <img src="/static/img/xiaoxi01.png" alt />
+          </div>
+          <div class="msg-right">
+            <div class="msg-top">
+              <h3>{{v.title}}</h3>
+              <span>{{v.adtime}}</span>
+            </div>
+            <div class="msg-bottom">
+              <p>{{v.content}}</p>
+              <img src="/static/img/delete.png" alt @click.stop="del(k,v.id)" />
+            </div>
+          </div>
+        </li>
+      </ul>
+        <div class="loading" v-if="more">
+            <span>没有更多了</span>
+          </div>
+    </div>
   </div>
 </template>
 
@@ -39,82 +30,141 @@ import Request from "@/common/js/request";
 export default {
   data() {
     return {
-      text: "消息",
-      loading: false,
-      finished: false,
-      isLoading: false,
       totalPage: 2,
       page: 1,
       list: [],
       msg: [],
-      show: false,
-      cid:''
+      more: false,
+      cid: "",
+      leaderid: ""
     };
   },
-  components: {
+  components: {},
+  onLoad() {
+    wx.setNavigationBarTitle({
+      title: "消息中心"
+    });
+    this.msg = [];
   },
-  mounted() {
-    this.cid=JSON.parse(wx.getStorageSync('user')).cid;
-     this.beginLoading(); 
+  onShow() {
+    this.msg = []
+    if (wx.getStorageSync("user")) {
+      this.cid = JSON.parse(wx.getStorageSync("user")).cid;
+      this.beginLoading();
+    } else {
+      wx.showModal({
+        title: "温馨提醒！",
+        content: "你还没有绑定手机号,请先绑定手机号,确认信息",
+        showCancel: false,
+        success: function(res) {
+          if (res.confirm) {
+            wx.navigateTo({
+              url: "/pages/bind/bindtell"
+            });
+          }
+        }
+      });
+    }
   },
   computed: {
     showMsg() {
       return this.msg.length;
     }
   },
+  onReachBottom() {
+    console.log("到底了");
+    // let self=this;
+    console.log(this.page, this.totalPage);
+    if (this.page < this.totalPage) {
+      this.page += 1;
+      this.beginLoading();
+    } else {
+      this.more = true;
+    }
+  },
   methods: {
-    onRefresh: function() {
-     
-    },
-    beginLoading: function() {
+    beginLoading() {
       let datas = {
         cmd: "infoList",
         cid: this.cid,
         pageNow: this.page
       };
-         Request.postRequest(datas)
+      console.log(datas);
+      Request.postRequest(datas)
         .then(res => {
+          console.log(res);
           if (res.result == 0) {
-            console.log(res.dataList);
-            if (this.page <= res.totalPage) {
-              if (res.dataList.length == 0) {
-                this.show = true;
-              } else {
-                this.show = false;
-                for (let i = 0; i < res.dataList.length; i++) {
-                  this.msg.push(res.dataList[i]);
-                }
-                this.page++;
-                // 加载状态结束
-                this.loading = false;
-              }
-            } else {
-              this.loading = false;
-              this.finished = true;
+            this.totalPage = res.totalPage;
+            for (let i in res.dataList) {
+              this.msg.push(res.dataList[i]);
             }
+            console.log(this.msg);
           }
         })
         .catch(res => {});
-   
-    },
-    back() {
-      // this.$router.push("/");
-      // localStorage.removeItem("Messageurl");
-      // this.$router.push("/" + this.Message);
     },
     del(index, id) {
-     
-     
+      console.log(11111)
+      let datas = {
+        cmd: "deleteInfo",
+        id: id
+      };
+      Request.postRequest(datas)
+        .then(res => {
+          if (res.result == 0) {
+            wx.showToast({
+              title: "删除成功",
+              icon: "none"
+            });
+          }
+        })
+        .catch(res => {
+          wx.showToast({
+            title: "删除失败",
+            icon: "none"
+          });
+        });
+      this.msg.splice(index, 1);
+      if (this.msg.length == 0) {
+        this.more = true;
+      }
     },
+    //  "type":"0",//类型 0系统消息 1订单消息 2提现消息
     goDetail(v, id) {
-    
+      if (v.type == 1) {
+        if (v.orderType != undefined) {
+          let obj = { direct: v.orderType, id: v.orderId };
+          if (v.orderType == 0) {
+            wx.navigateTo({
+              url: "/pages/order/orderdetials?id=" + JSON.stringify(obj)
+            });
+          } else {
+            wx.navigateTo({
+              url: "/pages/order/pinorderdetials?id=" + JSON.stringify(obj)
+            });
+          }
+        } else {
+          wx.showToast({
+            title:'订单不存在!请确认',
+            icon:'none'
+          })
+        }
+      } else if (v.type ==0) {
+        wx.showToast({
+          title:'这个消息内容只有这么多了!',
+          icon:'none'
+        })
+      } else {
+        wx.navigateTo({
+          url: "/pages/my/tuanzhangcenter/zhangdan?direct=" + 0
+        });
+      }
     }
   }
 };
 </script>
 
 <style scoped lang="stylus" rel="stylesheet/stylus">
-
 .systom {
   width: 100%;
   height: 100%;
@@ -142,7 +192,6 @@ export default {
       padding: 0 0.4rem;
       box-sizing: border-box;
       border-top: 1px solid #eee;
-      margin-top: 72px;
 
       li {
         width: 100%;
@@ -155,8 +204,8 @@ export default {
 
         .xiaoxian {
           position: relative;
-          width: 15%;
-          height: 15%;
+          width: 39px;
+          height: 39px;
 
           img {
             width: 100%;
@@ -210,8 +259,8 @@ export default {
             }
 
             img {
-              width: 0.5rem;
-              height: 0.5rem;
+              width: 0.35rem;
+              height: 0.35rem;
             }
           }
         }

@@ -2,7 +2,7 @@
   <div class="list">
     <div class="message">
       <h3>{{msg.adtime}}</h3>
-      <iframe :src="msg.url" frameborder="0"></iframe>
+      <web-view :src="msg.url"></web-view>
     </div>
   </div>
 </template>
@@ -26,31 +26,30 @@ export default {
     
   },
   onLoad(options){
-    this.cid=JSON.parse(wx.getStorageSync("user")).cid;
-    this.id= JSON.parse(options.id).id;
-    this.page=JSOn.parse(options.id).page;
+      wx.setNavigationBarTitle({
+      title: "消息详情"
+    });
+    // this.cid=JSON.parse(wx.getStorageSync("user")).cid;
+    this.id= options.id;
     this.init();
   },
   methods: {
     init() {
       let datas = {
-        cmd: "infoList",
-        cid: cid.cid,
-        pageNow: page - 1
+        cmd: "haveReadInfo",
+        id: this.id,
       };
       Request.postRequest(datas)
         .then(res => {
           console.log(res);
           if (res.result == 0) {
-            for (let i = 0; i < res.dataList.length; i++) {
-              if (id == res.dataList[i].id) {
-                this.msg = res.dataList[i];
-                this.text = res.dataList[i].title;
-              }
-            }
+            // for (let i = 0; i < res.dataList.length; i++) {
+            //   if (id == res.dataList[i].id) {
+            //     this.msg = res.dataList[i];
+            //     this.text = res.dataList[i].title;
+            //   }
+            // }
             console.log(this.msg);
-          } else if (res.result == "2") {
-            this.$router.push("/fenghao");
           }
         })
         .catch(res => {});

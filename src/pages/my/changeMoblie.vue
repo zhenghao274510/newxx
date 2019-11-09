@@ -3,7 +3,7 @@
     <div class="formList">
       <div class="formData">
         <div class="tel">
-          <input v-model="tel" type="number" placeholder="请输入手机号" />
+          <input v-model="tel" type="number" placeholder="请输入手机号"  />
         </div>
         <div class="tel">
           <input style="width: 50%;" type="text" placeholder="请填写验证码" v-model="code" />
@@ -13,7 +13,9 @@
           </button>
         </div>
         <div class="tel" style="border: none;background: none;">
-          <p>注：绑定成功之后，改手机号可用于登录，之前绑定手机号作废</p>
+           <!-- <radio>我已阅读并同意<span style="color:'green'" > 《 用户协议》</span></radio> -->
+           <p></p>
+         
         </div>
         <div class="btn" @click="btn">确定</div>
       </div>
@@ -26,7 +28,6 @@ import Request from "@/common/js/request";
 export default {
   data() {
     return {
-      text: "修改绑定手机号",
       tel: "",
       code: "",
       btnState: false,
@@ -37,16 +38,15 @@ export default {
   },
   components: {
   },
-  created() {
-    this.cid=JSON.parse(wx.getStorageSync('user')).cid;
-  },
-  mounted() {
+  onLoad() {
+     this.cid=JSON.parse(wx.getStorageSync('user')).cid;
   },
   methods: {
     getValidate() {
       if (this.tel == "") {
-        wx.showTaost({
-          title:"手机号不能为空"
+        wx.showToast({
+          title:"手机号不能为空",
+          icon:'none'
         })
         return;
       } else if (
@@ -54,8 +54,9 @@ export default {
           this.tel
         )
       ) {
-         wx.showTaost({
-          title:"手机号格式不正确"
+         wx.showToast({
+          title:"手机号格式不正确",
+          icon:'none'
         })
         return;
       }
@@ -79,20 +80,18 @@ export default {
         .then(res => {
           console.log(res);
           if (res.result == 0) {
-            wx.showTaost({
+            wx.showToast({
               title:res.resultNote
             })
           }
         })
         .catch(res => {});
     },
-    back() {
-      this.$router.go(-1);
-    },
     btn() {
       if (this.code == "") {
-        wx.showTaost({
-          title:'验证码不能为空'
+        wx.showToast({
+          title:'验证码不能为空',
+          icon:'none'
         })
       }
       let rebindMobile = {
@@ -106,13 +105,14 @@ export default {
         .then(res => {
           console.log(res);
           if (res.result == 0) {
-            wx.showTaost({
+            wx.showToast({
               title:'修改成功'
             })
             this.$router.go(-1);
           } else {
-             wx.showTaost({
-              title:'修改失败'
+             wx.showToast({
+              title:'该手机号已绑定!',
+              icon:'none'
             })
             this.code = "";
           }
@@ -130,12 +130,11 @@ export default {
 
   .formList {
     width: 100%;
-    padding-top: 72px;
 
     .formData {
       width: 100%;
       border-top: 1px solid #eee;
-      padding: 0 1.05rem;
+      padding: 0 10px;
       box-sizing: border-box;
 
       .tel {
@@ -152,8 +151,8 @@ export default {
 
         input {
           width: 70%;
-          height: 1.3rem;
-          line-height: 1rem;
+          height: 45px;
+          line-height: 45px;
           font-size: 15px;
           color: #333;
           background: #fafafa;
@@ -163,13 +162,13 @@ export default {
           display: inline-block;
           width: 35%;
           height: 0.6rem;
-          margin-left: 5%;
+          line-height:0.6rem;
+          margin-left: 8%;
           font-size: 15px;
           color: rgb(114, 209, 65);
           background: none;
           border: none;
           text-align: right;
-          border-left: 2px solid rgb(114, 209, 65);
         }
 
         p {
@@ -188,7 +187,7 @@ export default {
         font-size: 15px;
         color: #fff;
         text-align: center;
-        margin-top: 1rem;
+        margin-top: 30px;
       }
     }
   }

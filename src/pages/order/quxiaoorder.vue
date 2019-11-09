@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div class="box" v-if="num==1">
+    <div class="box">
       <div class="title">选择取消订单原因，帮助我们改进</div>
       <van-radio-group v-model="radio">
         <van-cell-group>
@@ -17,13 +17,13 @@
       </van-radio-group>
       <div class="btn" @click.stop="cancel">确定</div>
     </div>
-    <div v-else class="box box1">
+    <!-- <div  class="box box1">
       <div class="title">退款原因：</div>
       <van-cell-group>
         <van-field v-model="message" type="textarea" placeholder="请输入退款原因：" rows="4" />
       </van-cell-group>
       <div class="btn1" @click="btn">提交</div>
-    </div>
+    </div>-->
     <dialogs1 :showDialog1="showDialog1" :data1="data1" @cancels="cancels"></dialogs1>
   </div>
 </template>
@@ -40,25 +40,25 @@ export default {
       data1: "订单已取消",
       cancleList: [],
       candata: "",
-      message: ""
+      message: "",
+      id: ""
     };
   },
   components: {
     Dialogs1
   },
-  onLoad(opitions) {
-    this.cid=JSON.parse(wx.getStorageSync("user")).cid;
+  onLoad() {
+    this.id = wx.getStorageSync("orderid");
+    this.cid = JSON.parse(wx.getStorageSync("user")).cid;
     // console.log(this.$router.history.current.params.id);
     // this.num = this.$router.history.current.params.num;
     // this.id = this.$router.history.current.params.id;
-    if (this.num == 1) {
-      this.cancle();
-    }
+    // if (this.num == 1) {
+    this.cancle();
+    // }
   },
-  mounted() {
-  },
+  mounted() {},
   methods: {
-
     cant(tit, index) {
       // console.log(tit, index);
       this.candata = tit;
@@ -76,19 +76,20 @@ export default {
           console.log(res);
           if (res.result == 0) {
             this.showDialog1 = true;
+
+            setTimeout(() => {
+              this.showDialog1 = false;
+              this.$router.go(-1);
+            }, 500);
+
+            wx.removeStorageSync("orderid");
           }
         })
         .catch(res => {});
     },
     cancels() {
       this.showDialog1 = false;
-      this.$router.push({
-        path: "/order_detail",
-        query: {
-          num: this.$router.history.current.params.act,
-          id: this.id
-        }
-      });
+      this.$router.go(-1);
     },
     cancle() {
       let cancle = {
@@ -97,9 +98,9 @@ export default {
       Request.postRequest(cancle)
         .then(res => {
           // console.log(res.data)
-          if (res.data.result == 0) {
-            console.log(res.data.dataList);
-            this.cancleList = res.data.dataList;
+          if (res.result == 0) {
+            console.log(res.dataList);
+            this.cancleList = res.dataList;
           }
         })
         .catch(res => {});
@@ -113,16 +114,10 @@ export default {
       console.log(applyRefund);
       Request.postRequest(applyRefund)
         .then(res => {
-          console.log(res.data);
-          Toast(res.data.resultNote);
-          if (res.data.result == 0) {
-            this.$router.push({
-              path: "/order_detail",
-              query: {
-                num: this.$router.history.current.params.act,
-                id: this.id
-              }
-            });
+          console.log(res);
+          Toast(res.resultNote);
+          if (res.result == 0) {
+            this.$router.go(-1);
           }
         })
         .catch(res => {});
@@ -130,10 +125,18 @@ export default {
   }
 };
 </script>
+<style>
+page{
+  width:100%;
+  min-height:100%;
+}
+  
+</style>
 
 <style scoped lang="stylus" rel="stylesheet/stylus">
 .box {
   width: 100%;
+  height:100%;
 }
 
 .box1 {

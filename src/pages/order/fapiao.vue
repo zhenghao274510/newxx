@@ -19,10 +19,13 @@
       <div class="list" v-if="show == 1">
         <div class="bill_head">
           <h4>发票类型</h4>
-          <van-radio-group v-model="radio">
-            <van-radio name="0" checked-color="#72D141">企业单位</van-radio>
-            <van-radio name="1" checked-color="#72D141">个人/非企业单位</van-radio>
-          </van-radio-group>
+          <div class="chose">
+            <radio-group @change.stop="radioChange">
+              <radio v-for="(v,k) in items"  :checked="v.checked" :key="k" :value='v.name'>{{v.value}}</radio>
+              <!-- <radio >个人/非企业单位</radio> -->
+            </radio-group>
+           
+          </div>
         </div>
         <ul v-if="radio == 0">
           <li>
@@ -52,10 +55,12 @@
       <div class="list" v-if="show == 2">
         <div class="bill_head">
           <h4>发票类型</h4>
-          <van-radio-group v-model="radio">
-            <van-radio name="0" checked-color="#72D141">企业单位</van-radio>
-            <van-radio name="1" checked-color="#72D141">个人/非企业单位</van-radio>
-          </van-radio-group>
+          <div class="chose">
+            <radio-group @change.stop="radioChange">
+              <radio v-for="(v,k) in items"  :checked="v.checked" :key="k" :value='v.name' class="radio" size="13">{{v.value}}</radio>
+            </radio-group>
+           
+          </div>
         </div>
         <ul v-if="radio == 0">
           <li>
@@ -89,7 +94,7 @@
 
 <script>
 // import MainHeader from "@/components/component/mainHeader";
-// import Request from "@/common/js/request";
+import Request from "@/common/js/request";
 // import { Toast } from "vant";
 export default {
   data() {
@@ -99,6 +104,10 @@ export default {
       billIndex: 1,
       show: 1,
       radio: "0",
+      items:[
+        { name: '0', value: '企业单位' ,checked:true},
+      { name: '1', value: '个人/非企业单位',checked:false },
+      ],
       email: "", //	邮箱
       companyName: "", //公司名称
       taxpayerNumber: "", //纳税人识别号
@@ -121,8 +130,17 @@ export default {
       cid:''
     };
   },
-  created() {
-   
+  onLoad() {
+     this.email="",
+     this.companyName="",
+     this.taxpayerNumber="",
+     this.name="",
+     this.consigneeName="",
+     this.consigneeMobile="",
+     this.consigneeAddr="",
+      wx.setNavigationBarTitle({
+      title: "发票中心"
+    });
   },
   components: {
   },
@@ -130,10 +148,20 @@ export default {
     this.cid=JSON.parse(wx.getStorageSync("user")).cid;
   },
   methods: {
-    back() {
-      // this.$router.push('/order');
-      this.$router.go(-1)
-    },
+  radioChange(e){
+    console.log(e)
+    this.radio=e.target.value;
+    console.log(this.radio)
+    if(this.radio==1){
+      this.items[1].checked=true;
+      this.items[0].checked=false;
+    }else{
+      this.items[0].checked=true;
+      this.items[1].checked=false;
+    }
+    // console.log(event)
+    //   this.radio=event.target;
+  },
     choice(v) {
       this.billIndex = v.id;
       this.show = v.id;
@@ -165,7 +193,10 @@ export default {
             };
             defaultAddre.push(defaultAddress);
           } else {
-            Toast("内容不为空");
+            wx.showToast({
+              title:'内容不为空',
+              icon:'none'
+            })
           }
         } else {
           if (this.email != "" && this.name != "") {
@@ -179,7 +210,10 @@ export default {
             };
             defaultAddre.push(defaultAddress);
           } else {
-            Toast("内容不为空");
+            wx.showToast({
+              title:'内容不为空',
+              icon:'none'
+            })
           }
         }
       } else {
@@ -195,7 +229,10 @@ export default {
             };
             defaultAddre.push(defaultAddress);
           } else {
-            Toast("内容不为空");
+             wx.showToast({
+              title:'内容不为空',
+              icon:'none'
+            })
           }
         } else {
           if (
@@ -214,20 +251,22 @@ export default {
             };
             defaultAddre.push(defaultAddress);
           } else {
-            Toast("内容不为空");
+            wx.showToast({
+              title:'内容不为空',
+              icon:'none'
+            })
           }
         }
       }
-     this.Request.post(defaultAddre[0])
+    Request.postRequest(defaultAddre[0])
         .then(res => {
-          console.log(res.data);
-          if (res.data.result == 0) {
-            Toast("发票生成成功");
-            wx.setStorage({
-              key:"Invoice",
-              data:JSON.stringify(res.data.id)
+          console.log(res);
+          if (res.result == 0) {
+              let obj={};
+              obj.id=res.id; //发票ID
+            wx.showToast({
+              title:'发票生成成功'
             })
-            // localStorage.setItem("Invoice", JSON.stringify(res.data.id)); //发票ID
             if (this.billIndex == 1 && this.radio == 0) {
               this.billinx = 0;
             } else if (this.billIndex == 1 && this.radio == 1) {
@@ -237,14 +276,11 @@ export default {
             } else {
               this.billinx = 3;
             }
+            obj.bill=this.bills[this.billinx]; // 发票类型
+            wx.setStorageSync('Invoice',JSON.stringify(obj));
+
             this.$router.go(-1)
-             wx.setStorage({
-              key:"bill",
-              data:JSON.stringify(this.bills[this.billinx])
-            })
-            // localStorage.setItem("bill", JSON.stringify(this.bills[this.billinx]));
-          } else if (res.data.result == "2") {
-            this.$router.push("/pages/fenghao/main");
+          
           }
         })
         .catch(res => {});
@@ -252,12 +288,17 @@ export default {
   }
 };
 </script>
-
+<style>
+page{
+   width: 100%;
+  height: 100%;
+  background: #F5F5F5;
+}
+</style>
 <style scoped lang="stylus" rel="stylesheet/stylus">
 .contain {
   width: 100%;
   height: 100%;
-  background: #F5F5F5;
 }
 
 .active {
@@ -274,7 +315,6 @@ export default {
 
 .box {
   width: 100%;
-  padding: 72px 0 0;
 
   h3 {
     width: 100%;
@@ -329,6 +369,7 @@ export default {
     display: flex;
     flex-direction: column;
     background: #fff;
+    
 
     .bill_head {
       width: 100%;
@@ -339,6 +380,16 @@ export default {
       color: #333;
       height: 40px;
       border-bottom: 1px solid #eee;
+      .chose{
+        display:flex;
+        flex:1;
+        margin-left:20px;
+        align-items:center;
+           ._radio{
+             margin-left:10px;
+
+           }
+      }
     }
 
     ul {

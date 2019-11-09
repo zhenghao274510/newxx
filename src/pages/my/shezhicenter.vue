@@ -2,15 +2,7 @@
   <div class="problem-box">
     <ul class="problem-zi">
       <li>
-        <a href="/xiulogin">
-          <span>修改登录密码</span>
-          <span>
-            <img src="/static/img/right.png" alt />
-          </span>
-        </a>
-      </li>
-      <li>
-        <a href="/provisions">
+        <a href="/pages/upSet/fuwutiaowen">
           <span>服务条文</span>
           <span>
             <img src="/static/img/right.png" alt />
@@ -18,7 +10,7 @@
         </a>
       </li>
       <li>
-        <a href="/problem">
+        <a href="/pages/upSet/problem">
           <span>常见问题</span>
           <span>
             <img src="/static/img/right.png" alt />
@@ -26,14 +18,14 @@
         </a>
       </li>
       <li>
-        <a href="/feedback">
+        <a href="/pages/upSet/yijian">
           <span>意见反馈</span>
           <span>
             <img src="/static/img/right.png" alt />
           </span>
         </a>
       </li>
-      <li>
+      <!-- <li>
         <a >
           <span>系统更新</span>
           <div>
@@ -42,8 +34,8 @@
             <img src="/static/img/right.png" alt />
           </div>
         </a>
-      </li>
-      <li @click="clear">
+      </li> -->
+      <!-- <li @click="clear">
         <a >
           <span>清除缓存</span>
           <div>
@@ -51,21 +43,19 @@
             <img src="/static/img/right.png" alt />
           </div>
         </a>
-      </li>
+      </li> -->
     </ul>
-    <btn :content="btntext" @click="btn"></btn>
+    <!-- <btn :content="btntext" @click="btn"></btn> -->
 
   </div>
 </template>
 
 <script>
-import btn from '@/components/btn'
+// import btn from '@/components/btn'
 // import Request from "@/common/js/request";
 export default {
   data() {
     return {
-      text: "我的设置",
-      btntext:"安全退出",
       list: "",
       url: "",
       zime: "",
@@ -73,12 +63,15 @@ export default {
     };
   },
   components: {
-    btn
+    // btn
   },
-  created() {
+  onLoad() {
+      wx.setNavigationBarTitle({
+      title: "设置中心"
+    });
    
-    this.Update();
-    this.zimes();
+    // this.Update();
+    // this.zimes();
   },
   mounted() {
    
@@ -133,7 +126,7 @@ export default {
 
 <style scoped lang="stylus" rel="stylesheet/stylus">
 .problem-zi {
-  padding: 36px 10px 0;
+  padding:0 10px 0;
 
   li {
     font-size: 14px;

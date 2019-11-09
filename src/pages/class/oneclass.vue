@@ -9,67 +9,38 @@
         @change="sort"
         :swipeable="true"
         :sticky="true"
-        :offset-top="10"
       >
         <van-tab title="综合排序">
-          <van-list
-            v-model="loading"
-            :finished="finished"
-            finished-text="没有更多了"
-            @load="beginLoading"
-            :offset="10"
-            v-if="!show"
-          >
+   
             <!-- <van-pull-refresh v-model="isLoading" @refresh="onRefresh"> -->
             <recommendfen :recommend="list"></recommendfen>
             <!-- </van-pull-refresh> -->
-          </van-list>
+
         </van-tab>
         <van-tab title="好评优先">
-          <van-list
-            v-model="loading"
-            :finished="finished"
-            finished-text="没有更多了"
-            @load="beginLoading"
-            :offset="10"
-            v-if="!show"
-          >
+  
             <!-- <van-pull-refresh v-model="isLoading" @refresh="onRefresh"> -->
-            <recommendfen :recommend="list"></recommendfen>
-            <!-- </van-pull-refresh> -->
-          </van-list>
+            <recommendfen :recommend="list" ></recommendfen>
+    
         </van-tab>
         <van-tab title="价格优先">
-          <van-list
-            v-model="loading"
-            :finished="finished"
-            finished-text="没有更多了"
-            @load="beginLoading"
-            :offset="10"
-            v-if="!show"
-          >
+        
             <!-- <van-pull-refresh v-model="isLoading" @refresh="onRefresh"> -->
-            <recommendfen :recommend="list"></recommendfen>
+            <recommendfen :recommend="list" ></recommendfen>
             <!-- </van-pull-refresh> -->
-          </van-list>
         </van-tab>
         <van-tab title="销量优先">
-          <van-list
-            v-model="loading"
-            :finished="finished"
-            finished-text="没有更多了"
-            @load="beginLoading"
-            :offset="10"
-            v-if="!show"
-          >
+
             <!-- <van-pull-refresh v-model="isLoading" @refresh="onRefresh"> -->
-            <recommendfen :recommend="list"></recommendfen>
+            <recommendfen :recommend="list" ></recommendfen>
             <!-- </van-pull-refresh> -->
-          </van-list>
         </van-tab>
       </van-tabs>
     </div>
     <div class="no" v-if="show">暂没有搜索的商品</div>
+     <div class="loading" v-if="more">
+            <span>没有更多了</span>
+          </div>
   </div>
 </template>
 
@@ -83,51 +54,47 @@ export default {
       text: "分类名称",
       active: 0,
       list: [],
-      isLoading: false,
-      loading: false,
-      finished: false,
       sorts: 0,
       page: 1,
       totalPage: "",
       show: false,
       recommend: [],
       id: "",
-      ink: ""
+      ink: "",
+      direct:1,
+      more:false
     };
   },
   components: {
     Recommendfen
   },
   onLoad(options) {
-
+    this.list=[];
     this.id =JSON.parse(options.id).id;
+    this.direct=JSON.parse(options.id).direct;
      wx.setNavigationBarTitle({
       title: JSON.parse(options.id).name
     });
+      this.initDta();
     console.log(this.id);
-  },
-  mounted() {
-    this.initDta();
   },
   computed: {
     showList() {
       return this.list;
     }
   },
+   onReachBottom() {
+    console.log("触底");
+    if (this.page < this.totalPage) {
+      this.page+=1;
+      this.initDta();
+    } else {
+      this.more = true;
+    }
+  },
   methods: {
-    onRefresh: function() {
-      var self = this;
-      this.list = [];
-      this.page = 1;
-      this.finished = false;
-      this.beginLoading();
-      setTimeout(function() {
-        Toast("刷新成功");
-        self.isLoading = false;
-      }, 500);
-    },
     initDta() {
-      this.list=[];
+      // this.list=[];
       let Category = {
         cmd: "selectGoodsByCategory",
         orderType: this.sorts,
@@ -140,27 +107,13 @@ export default {
           console.log(res);
           if (res.result == 0) {
             this.totalPage = res.totalPage;
-            if (this.page <= res.totalPage) {
               for (var i = 0; i < res.dataList.length; i++) {
+                res.dataList[i].type=this.direct;
                 this.list.push(res.dataList[i]);
               }
-            }
-          } else if (res.dataList.length==0) {
-            this.show = true;
           }
         })
         .catch(res => {});
-    },
-
-    beginLoading() {
-      if (this.page < this.totalPage) {
-        this.page += 1;
-        this.initDta();
-      } else {
-        wx.showToast({
-          title: "没有更多了"
-        });
-      }
     },
     sort(k) {
       if (k.target.index==undefined) {

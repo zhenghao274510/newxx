@@ -1,8 +1,8 @@
 <template>
-  <div class="list">
+  <div class="list" @click.stop>
     <h3 v-if="title">{{title}}</h3>
     <ul class="list-box">
-      <li v-for="(v,k) in recommendList" :key="k" @click.stop="detail(v)" v-if="k<3">
+      <li v-for="(v,k) in recommendList" :key="k" @click.stop="detail(v.id)" v-if="k<3">
         <img :src="v.image" alt lazy-load />
         <div class="list-content">
           <div class="list-top">
@@ -33,6 +33,11 @@ export default {
     recommendList: {
       type: Array,
       default: []
+    },
+    direct:{
+      type:Number,
+       default:0
+
     }
   },
   data() {
@@ -41,44 +46,73 @@ export default {
     };
   },
   created() {},
-  mounted() {
-    this.cid=JSON.parse(wx.getStorageSync("user")).cid;
+  onLoad() {
+    this.cid = JSON.parse(wx.getStorageSync("user")).cid;
   },
   methods: {
-    detail(k) {
-      console.log(k.id);
-      wx.navigateTo({
-        url: "../Good/gooddetials?id="+k.id
+    detail(id) {
+       console.log(id);
+       let obj={}
+       obj.id=id;
+      if(this.direct==100){
+        obj.type=1;
+          wx.navigateTo({
+        url: "/pages/pintuan/gooddetailspin?id=" + JSON.stringify(obj)
       });
+      }else if(this.direct==200){
+        obj.type=2;
+        wx.navigateTo({
+        url: "/pages/Good/gooddetials?id=" + JSON.stringify(obj)
+      });
+      }else{
+         obj.type=0;
+            wx.navigateTo({
+        url: "/pages/Good/gooddetials?id=" + JSON.stringify(obj)
+      });
+      }
+     
+     
       // let ID = {};
       // ID.id = id;
       // wx.setStorageSync("first-shopID", JSON.stringify(ID));
     },
     //购物车图标
     shopcart(v) {
-      console.log(v);
-      // this.cid = "b94cb0c7d5544b268727b6e3a2ac9a06";
-      let datas = {
-        cmd: "addToCar",
-        gid: v.id,
-        cid: this.cid,
-        specifications: v.skuId,
-        number: 1
-      };
-      Request.postRequest(datas)
-        .then(res => {
-          console.log(res);
-          if (res.result == 0) {
-            wx.showToast({
-              title: "添加购物车成功"
-            });
-            // this.gounum();
-            // this.donghua = false;
-          } else if (res.result == "2") {
-            this.$router.push("/fenghao");
+      if (this.cid ==undefined) {
+        wx.showModal({
+          title: "温馨提醒！",
+          content: "你还没有绑定手机号,请先绑定手机号,确认信息",
+          showCancel: false,
+          success: function(res) {
+            if (res.confirm) {
+              wx.navigateTo({
+                url: "/pages/bind/bindtell"
+              });
+            }
           }
-        })
-        .catch(res => {});
+        });
+      } else {
+        let datas = {
+          cmd: "addToCar",
+          gid: v.id,
+          cid: this.cid,
+          specifications: v.skuId,
+          number: 1
+        };
+        Request.postRequest(datas)
+          .then(res => {
+            console.log(res);
+            if (res.result == 0) {
+              wx.showToast({
+                title: "添加购物车成功",
+                icon:'none'
+              });
+              // this.gounum();
+              // this.donghua = false;
+            }
+          })
+          .catch(res => {});
+      }
     }
   }
 };
@@ -90,8 +124,8 @@ export default {
   display: flex;
   flex-direction: column;
   background: #fff;
-  // margin-top: 0.5rem;
 
+  // margin-top: 0.5rem;
   h3 {
     width: 100%;
     height: 60px;
@@ -99,7 +133,6 @@ export default {
     text-align: center;
     font-size: 16px;
     color: #333;
-    background: rgb(250, 250, 250);
   }
 
   .list-box {

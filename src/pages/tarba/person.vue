@@ -2,10 +2,13 @@
   <div class="contain">
     <div class="box">
       <div class="wrapper">
-        <div class="xiaoxi"  @click="message">
-          <img src="/static/img/personmsg.png" alt class="xiaoxi" />
-          <b class="xiaob"></b>
-        </div>
+        <form @submit="getformid" report-submit="true" class="addbtn">
+          <div class="xiaoxi" @click="message">
+            <button formType="submit" class="formid"></button>
+            <img src="/static/img/personmsg.png" alt class="xiaoxi" />
+            <b class="xiaob" v-if="xiaoshow==true"></b>
+          </div>
+        </form>
         <div class="person" @click="goMsg">
           <div class="user">
             <span style="font-weight: 600;margin-bottom: 0.3rem;font-size:14px;">{{username}}</span>
@@ -53,7 +56,12 @@
                 </span>
                 <img slot="icon" slot-scope="props" src="/static/img/daifukuan.png" />
               </van-tabbar-item>
-              <van-tabbar-item to :info="pendSendNumber" v-if="pendSendNumber>0" @click="gotoall(2)">
+              <van-tabbar-item
+                to
+                :info="pendSendNumber"
+                v-if="pendSendNumber>0"
+                @click="gotoall(2)"
+              >
                 <span>
                   待发货
                   <!-- <a :href="'/pages/order/all'+2">待发货</a> -->
@@ -67,7 +75,12 @@
                 </span>
                 <img slot="icon" slot-scope="props" src="/static/img/daifahuo.png" />
               </van-tabbar-item>
-              <van-tabbar-item to :info="pendReceiveNumber" v-if="pendReceiveNumber>0" @click="gotoall(3)">
+              <van-tabbar-item
+                to
+                :info="pendReceiveNumber"
+                v-if="pendReceiveNumber>0"
+                @click="gotoall(3)"
+              >
                 <span>
                   待收货
                   <!-- <a :href="'/pages/order/all/'+3">待收货</a> -->
@@ -81,7 +94,12 @@
                 </span>
                 <img slot="icon" slot-scope="props" src="/static/img/daishouhuo.png" />
               </van-tabbar-item>
-              <van-tabbar-item to :info="pendEvaluateNumber" v-if="pendEvaluateNumber>0" @click="gotoall(4)">
+              <van-tabbar-item
+                to
+                :info="pendEvaluateNumber"
+                v-if="pendEvaluateNumber>0"
+                @click="gotoall(4)"
+              >
                 <span>
                   待评价
                   <!-- <a :href="'/pages/order/all/'+4"></a> -->
@@ -95,7 +113,12 @@
                 </span>
                 <img slot="icon" slot-scope="props" src="/static/img/daipingjia.png" />
               </van-tabbar-item>
-              <van-tabbar-item to :info="afterSaleNumber" v-if="afterSaleNumber>0" @click="gotoall(5)">
+              <van-tabbar-item
+                to
+                :info="afterSaleNumber"
+                v-if="afterSaleNumber>0"
+                @click="gotoall(5)"
+              >
                 <span>
                   退款/售后
                   <!-- <a :href="'/pages/order/TuiShop/'+5">退款/售后</a> -->
@@ -114,9 +137,9 @@
         </div>
         <div class="bottom-nav">
           <div class="bottom-head">
-            <span style="font-size:14px;">山城乡鲜服务</span>
+            <div style="font-size:14px;background:#fff;">山城乡鲜服务</div>
           </div>
-          <ul>
+          <ul style="border-radius:0 0 5px 5px ;">
             <li class="one">
               <a href="/pages/my/shoucang">
                 <img src="/static/img/my_shoucang.png" alt />
@@ -130,24 +153,23 @@
               <span>我的评价</span>
             </li>
             <li class="one">
-              <a href="/pages/address/index">
+              <a href="/pages/address/myadd">
                 <img src="/static/img/my_dizhi.png" alt />
               </a>
               <span>地址管理</span>
             </li>
           </ul>
-          <ul>
+          <!-- <div style="height:15px;background:#eee"></div> -->
+          <ul style="border-radius:5px;margin-top:10px;">
             <li class="two">
               <a href="/pages/my/shangjia/shangjiaruzhu">
                 <img src="/static/img/my_ruzhu.png" alt />
               </a>
               <span>商家入驻</span>
             </li>
-            <li class="two">
-              <a href="/pages/my/tuanzhangcenter/tuanzhangcenter">
-                <img src="/static/img/my_tuanzhang@2x.png" alt />
-              </a>
-              <span>团长入住</span>
+            <li class="two" @click="learCenter">
+              <img src="/static/img/my_tuanzhang@2x.png" alt />
+              <span>团长入驻</span>
             </li>
             <li class="two">
               <a href="/pages/my/kefucenter">
@@ -186,18 +208,63 @@ export default {
       pendSendNumber: "", //待发货
       useryin: false,
       gou: 0,
-      cid:''
+      cid: "",
+      formid: "",
+      first: true
     };
   },
-  mounted() {
-    this.cid=JSON.parse(wx.getStorageSync('user')).cid;
-    this.gouserInfo();
-    this.infoList();  
-    // Request.getCurrentCityName();
+  onLoad() {
+    wx.setNavigationBarTitle({
+      title: "个人中心"
+    });
+    this.xiaoshow=false;
   },
+  onShow() {
+    if (wx.getStorageSync("user")) {
+      this.cid = JSON.parse(wx.getStorageSync("user")).cid;
+
+      if (this.cid == undefined) {
+        this.nouser();
+      } else {
+        this.gouserInfo();
+        this.infoList();
+      }
+    }
+  },
+  mounted() {},
   components: {},
   methods: {
-     infoList() {
+    getformid(e) {
+      console.log(e);
+      this.formid = e.mp.detail.formId;
+      let parmas = {
+        cmd: "uploadFormid",
+        uid: this.cid,
+        fromid: this.formid
+      };
+      Request.postRequest(parmas)
+        .then(res => {
+          console.log(res);
+        })
+        .catch(res => {});
+    },
+    nouser() {
+      wx.showModal({
+        title: "温馨提醒！",
+        content: "你还没有绑定手机号,请先绑定手机号,确认信息",
+        showCancel: false,
+        success: function(res) {
+          if (res.confirm) {
+            wx.navigateTo({
+              url: "/pages/bind/bindtell"
+            });
+          } else if (res.cancel) {
+            console.log("取消");
+          }
+        }
+      });
+    },
+    infoList() {
       let datas = {
         cmd: "infoList",
         cid: this.cid,
@@ -205,45 +272,101 @@ export default {
       };
       Request.postRequest(datas)
         .then(res => {
-          console.log(res)
+          console.log(res);
           if (res.result == 0) {
+            let num=0;
             for (var i in res.dataList) {
               if (res.dataList[i].read == 0) {
-                this.xiaoshow = true;
-              } else {
-                this.xiaoshow = false;
-              }
+                     num+=1;
+              } 
             }
-          } else if (res.result == "2") {
-            this.$router.push("/fenghao");
+            if(num>0){
+              this.xiaoshow = true;
+            }
           }
         })
         .catch(res => {});
     },
-     gouserInfo() {
+    gouserInfo() {
       let goCarlist = {
         cmd: "myInfo",
         cid: this.cid
       };
       Request.postRequest(goCarlist)
         .then(res => {
-          console.log(res)
+          console.log(res);
           if (res.result == 0) {
             this.username = res.nickName; //昵称
-            this.mobile = `${res.mobile.slice(0, 3)}****${res.mobile.slice(-4)}`; //手机号
+            this.mobile = `${res.mobile.slice(0, 3)}****${res.mobile.slice(
+              -4
+            )}`; //手机号
             this.headImage = res.headImage; //头像
-              this.pendEvaluateNumber = res.pendEvaluateNumber; //待评价
+            this.pendEvaluateNumber = res.pendEvaluateNumber; //待评价
             this.pendPayNumber = res.pendPayNumber; //待付款
             this.pendReceiveNumber = res.pendReceiveNumber; //待收货
             this.pendSendNumber = res.pendSendNumber; //待发货
-          } 
+          }
         })
         .catch(res => {});
     },
+    learCenter() {
+      if (this.first) {
+        this.first = false;
+        let parmas = {
+          cmd: "leaderInfo",
+          cid: this.cid
+        };
+        Request.postRequest(parmas)
+          .then(res => {
+            console.log(res);
+            if (res.result == 0) {
+              this.first = true;
+              let num = Number(res.state);
+              switch (num) {
+                case 0:
+                  wx.showToast({
+                    title: "正在审核中!请稍等...",
+                    icon: "none"
+                  });
+                  break;
+                case 1:
+                wx.setStorageSync('leaderInfo',JSON.stringify(res));
+                setTimeout(()=>{
+                   wx.navigateTo({
+                    url: "/pages/my/tuanzhangcenter/tuanzhangcenter"
+                  });
+                },300)
+                 
+                  break;
+                case 2:
+                  wx.showToast({
+                    title: "你的审核没有通过，是否前往重新填写个人信息",
+                    icon: "none"
+                  });
+                  setTimeout(() => {
+                    wx.navigateTo({
+                      url: "/pages/my/tuanzhangcenter/restuanzhang"
+                    });
+                  }, 500);
+                  break;
+                case 3:
+                  wx.navigateTo({
+                    url: "/pages/my/tuanzhangcenter/restuanzhang"
+                  });
+              }
+            }
+          })
+          .catch(err => {});
+      }
+    },
     goMsg() {
-       wx.navigateTo({
-        url: "/pages/my/person_msg"
-      });
+      if (this.cid == undefined) {
+        this.nouser();
+      } else {
+        wx.navigateTo({
+          url: "/pages/my/person_msg"
+        });
+      }
     },
     message() {
       wx.navigateTo({
@@ -251,31 +374,41 @@ export default {
       });
     },
     gotoall(m) {
-      switch(m){
+      wx.setStorageSync("tarnum", "0");
+      switch (m) {
         case 0:
-        wx.navigateTo({url:'/pages/order/all?id='+0});
-        break;
-         case 1:
-        wx.navigateTo({url:'/pages/order/all?id='+1});
-        break;
-         case 2:
-        wx.navigateTo({url:'/pages/order/all?id='+2});
-        break;
-         case 3:
-        wx.navigateTo({url:'/pages/order/all?id='+3});
-        break;
-         case 4:
-        wx.navigateTo({url:'/pages/order/all?id='+4});
-        break;
-         case 5:
-        wx.navigateTo({url:'/pages/order/TuiShop'});
-        break;
-
+          wx.navigateTo({ url: "/pages/order/all?id=" + 0 });
+          break;
+        case 1:
+          wx.navigateTo({ url: "/pages/order/all?id=" + 1 });
+          break;
+        case 2:
+          wx.navigateTo({ url: "/pages/order/all?id=" + "2" });
+          break;
+        case 3:
+          wx.navigateTo({ url: "/pages/order/all?id=" + 3 });
+          break;
+        case 4:
+          wx.navigateTo({ url: "/pages/order/all?id=" + 4 });
+          break;
+        case 5:
+          wx.navigateTo({ url: "/pages/order/TuiShop?cid="+this.cid });
+          break;
       }
     }
   }
 };
 </script>
+<style>
+.van-hairline--top-bottom::after {
+  border: none !important;
+}
+page {
+  width: 100%;
+  min-height: 100%;
+  background: #eee;
+}
+</style>
 
 <style scoped lang="stylus">
 ._van-tabbar {
@@ -285,14 +418,9 @@ export default {
 .van-tabbar-item {
   font-size: 16px;
 }
-
 ._van-tabbar-item__icon img {
-  width: 18px !important;
-  height: 18px !important;
-}
-
-.van-hairline--top-bottom::after {
-  border: none !important;
+  width: 36px !important;
+  height: 36px !important;
 }
 
 .top-bar {
@@ -315,7 +443,7 @@ export default {
     background: #60c42e;
     padding: 0rpx 20rpx;
     box-sizing: border-box;
-    height: 450rpx;
+    height: 400rpx;
 
     .wrapper {
       width: 100%;
@@ -323,7 +451,6 @@ export default {
       flex-direction: column;
       position: relative;
       padding-top: 30rpx;
-
 
       .xiaoxi {
         position: relative;
@@ -372,6 +499,7 @@ export default {
             width: 1.6rem;
             height: 1.6rem;
             font-size: 0;
+            margin-right: 30px;
 
             img {
               width: 100%;
@@ -387,7 +515,7 @@ export default {
       width: 100%;
       background: #fff;
       position: absolute;
-      top: 3rem;
+      top: 2.5rem;
       left: 0;
       border-radius: 8px;
       // padding: 0.2rem 0;
@@ -415,9 +543,9 @@ export default {
 
     .bottom-nav {
       width: 100%;
-      background: #fff;
+      // background: #eee;
       position: absolute;
-      top: 5.6rem;
+      top: 5.1rem;
       left: 0;
       border-radius: 8px;
       // padding: 0.2rem 0;
@@ -426,6 +554,7 @@ export default {
       .bottom-head {
         width: 100%;
         height: 1rem;
+        background: #fff;
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -434,22 +563,29 @@ export default {
         padding: 0 0.4rem;
         box-sizing: border-box;
         border-bottom: 1px solid #eee;
+        border-radius: 8px 8px 0 0;
       }
 
       ul {
         width: 100%;
+        background: #fff;
         display: flex;
         flex-wrap: wrap;
-        padding: 0.15rem 0 0 0;
+        padding: 20px 0 0 0;
 
+        // border-radius:8px;
         li {
-          margin-bottom: 0.5rem;
+          margin-bottom: 0.15rem;
           display: flex;
           flex-direction: column;
           align-items: center;
           justify-content: center;
           font-size: 14px;
           color: #333;
+
+          a {
+            display: block;
+          }
 
           img {
             width: 38px;
