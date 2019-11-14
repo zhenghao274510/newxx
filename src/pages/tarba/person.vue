@@ -5,7 +5,7 @@
         <form @submit="getformid" report-submit="true" class="addbtn">
           <div class="xiaoxi" @click="message">
             <button formType="submit" class="formid"></button>
-            <img src="/static/img/personmsg.png" alt class="xiaoxi" />
+            <img src="/static/img/xiaoxi01.png" alt class="xiaoxi" />
             <b class="xiaob" v-if="xiaoshow==true"></b>
           </div>
         </form>
@@ -265,6 +265,7 @@ export default {
       });
     },
     infoList() {
+      this.show=false;
       let datas = {
         cmd: "infoList",
         cid: this.cid,
@@ -296,6 +297,7 @@ export default {
         .then(res => {
           console.log(res);
           if (res.result == 0) {
+            wx.setStorageSync('order',JSON.stringify(res))
             this.username = res.nickName; //昵称
             this.mobile = `${res.mobile.slice(0, 3)}****${res.mobile.slice(
               -4
@@ -340,7 +342,7 @@ export default {
                   break;
                 case 2:
                   wx.showToast({
-                    title: "你的审核没有通过，是否前往重新填写个人信息",
+                    title: "你的审核没有通过，请重新填写个人信息",
                     icon: "none"
                   });
                   setTimeout(() => {
@@ -440,7 +442,7 @@ page {
     width: 100%;
     display: flex;
     flex-direction: column;
-    background: #60c42e;
+    background: #72D241;
     padding: 0rpx 20rpx;
     box-sizing: border-box;
     height: 400rpx;
@@ -454,12 +456,12 @@ page {
 
       .xiaoxi {
         position: relative;
-        width: 0.5rem;
-        height: 0.5rem;
+        width: 0.7rem;
+        height: 0.7rem;
 
         img {
-          width: 0.5rem;
-          height: 0.5rem;
+          width: 0.7rem;
+          height: 0.7rem;
         }
 
         .xiaob {
@@ -515,7 +517,7 @@ page {
       width: 100%;
       background: #fff;
       position: absolute;
-      top: 2.5rem;
+      top: 2.8rem;
       left: 0;
       border-radius: 8px;
       // padding: 0.2rem 0;
@@ -545,7 +547,7 @@ page {
       width: 100%;
       // background: #eee;
       position: absolute;
-      top: 5.1rem;
+      top: 5.4rem;
       left: 0;
       border-radius: 8px;
       // padding: 0.2rem 0;

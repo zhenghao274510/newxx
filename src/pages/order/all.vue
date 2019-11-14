@@ -88,7 +88,7 @@
             </li>
           </ul>
         </van-tab>
-        <van-tab :title="childtitle[tarbaActive]">
+        <van-tab :title="topNav[0]">
           <!-- <van-pull-refresh v-model="isLoading" @refresh="onRefresh"> -->
           <ul>
             <li v-for="(v,k) in list" :key="k" @click.stop="order(v)">
@@ -165,7 +165,7 @@
         <!--0待付款 1待处理 2待发货 3待收货 4待评价 5已评价 6已取消 7待退款 8已退款 9拒绝退款-->
         <!-- 拼团订单 -->
         <!-- 0待支付 1拼团中 2待发货 3已发货 4待取货 5已完成  6已取消 7待退款 8已退款 9拒绝退款 -->
-        <van-tab title="待发货">
+        <van-tab :title="topNav[1]">
           <ul>
             <li v-for="(v,k) in list" :key="k" @click.stop="order(v)">
               <h3>
@@ -234,7 +234,7 @@
             </li>
           </ul>
         </van-tab>
-        <van-tab title="待收货">
+        <van-tab :title="topNav[2]">
           <ul>
             <li v-for="(v,k) in list" :key="k" @click.stop="order(v)">
               <h3>
@@ -305,7 +305,7 @@
             </li>
           </ul>
         </van-tab>
-        <van-tab title="待评价">
+        <van-tab :title="topNav[3]">
           <ul>
             <li v-for="(v,k) in list" :key="k" @click.stop="order(v)">
               <h3>
@@ -387,14 +387,10 @@ import Request from "@/common/js/request";
 export default {
   data() {
     return {
-      tarbaTitle: ["普通订单", "拼团订单", "拿货团订单"],
-      childtitle: ["待付款", "进行中", "待付款"],
+      // tarbaTitle: ["精品订单", "拼团订单", "拿货团订单"],
+      tarbaTitle: ["精品订单", "拼团订单"],
       tarbaActive: 0,
-      donghua: false,
-      text: "订单中心",
       active: "",
-      loading: false,
-      finished: false,
       page: 1,
       totalPage: 1,
       list: [],
@@ -404,9 +400,17 @@ export default {
       pendSendNumber: "", //待发货
       isLoading: false,
       cid: "",
-      more: false
+      more: false,
+      orderAll: {},
+      topNav: []
     };
   },
+  // computed: {
+  //   topNav() {
+
+  //     return arry;
+  //   }
+  // },
   components: {},
   onLoad(options) {
     this.list = [];
@@ -420,14 +424,22 @@ export default {
   // onShow() {
 
   // },
-  onShow() {
+  mounted() {
     this.list = [];
+    console.log(this.tarbaActive);
     if (wx.getStorageSync("tarnum")) {
       this.tarbaActive = wx.getStorageSync("tarnum");
       wx.removeStorageSync("tarnum");
     }
+    if (wx.getStorageSync("order")) {
+      this.orderAll = JSON.parse(wx.getStorageSync("order"));
+      this.gouserInfo(this.tarbaActive);
+    }else{
+      this.getNum();
+    }
     if (this.tarbaActive != 1) {
-      this.myOrder(this.active, this.page, this.tarbaActive);
+      // this.myOrder(this.active, this.page, this.tarbaActive);
+      this.myOrder(this.active, this.page);
     } else {
       this.pinTuanOrderList();
     }
@@ -463,8 +475,8 @@ export default {
           cmd: "myOrder",
           cid: this.cid,
           pageNow: this.page,
-          status: this.active,
-          type: this.tarbaActive
+          status: this.active
+          // type: this.tarbaActive
         };
         console.log(myOrder);
         Request.postRequest(myOrder)
@@ -485,12 +497,68 @@ export default {
     }
   },
   methods: {
+    getNum() {
+      let goCarlist = {
+        cmd: "myInfo",
+        cid: this.cid
+      };
+      Request.noLoading(goCarlist)
+        .then(res => {
+          console.log(res);
+          if (res.result == 0) {
+            this.orderAll = res;
+            this.gouserInfo(this.tarbaActive);
+          }
+        })
+        .catch(res => {});
+    },
+    gouserInfo(num) {
+      let res = this.orderAll;
+      let arry = ["", "待发货", "待收货", "待评价"];
+      if (num == 0) {
+        arry[0] = "待付款";
+        this.pendEvaluateNumber = res.pendEvaluateNumber; //待评价
+        this.pendPayNumber = res.pendPayNumber; //待付款
+        this.pendReceiveNumber = res.pendReceiveNumber; //待收货
+        this.pendSendNumber = res.pendSendNumber; //待发货
+        // 拼团
+      } else if (num == 1) {
+        arry[0] = "进行中";
+        this.pendEvaluateNumber = res.ptnocomment; //待评价
+        this.pendPayNumber = res.pting; //待付款
+        this.pendReceiveNumber = res.ptnoreceive; //待收货
+        this.pendSendNumber = res.ptnosend; //待发
+      } 
+      // else {
+      //   arry[0] = "待付款";
+      //   this.pendEvaluateNumber = res.nhtpendEvaluateNumber; //待评价
+      //   this.pendPayNumber = res.nhtpendPayNumber; //待付款
+      //   this.pendReceiveNumber = res.nhtpendReceiveNumber; //待收货
+      //   this.pendSendNumber = res.nhtpendSendNumber; //待发
+      // }
+      this.pendPayNumber != 0
+        ? (arry[0] = arry[0] + "(" + this.pendPayNumber + ")")
+        : arry[0];
+      this.pendSendNumber != 0
+        ? (arry[1] = arry[1] + "(" + this.pendSendNumber + ")")
+        : arry[1];
+      this.pendReceiveNumber != 0
+        ? (arry[2] = arry[2] + "(" + this.pendReceiveNumber + ")")
+        : arry[2];
+      this.pendEvaluateNumber != 0
+        ? (arry[3] = arry[3] + "(" + this.pendEvaluateNumber + ")")
+        : arry[3];
+      this.topNav = arry;
+    },
+
     //  最顶部
     changTop(ind) {
+      this.gouserInfo(ind);
       if (this.tarbaActive == ind) {
         return;
       } else {
         this.tarbaActive = ind;
+
         this.list = [];
         if (ind == 1) {
           this.pinTuanOrderList();
@@ -501,7 +569,7 @@ export default {
         // this.list = [];
       }
     },
-    //   拼团   拿货团
+    //   拼团 
     pinTuanOrderList() {
       let parmas = {
         cmd: "pinTuanOrderList",
@@ -525,31 +593,13 @@ export default {
         })
         .catch(err => {});
     },
-    // gouserInfo() {
-    //   let goCarlist = {
-    //     cmd: "myInfo",
-    //     cid: this.cid
-    //   };
-    //   Request.postRequest(goCarlist)
-    //     .then(res => {
-    //       console.log(res);
-    //       if (res.result == 0) {
-    //         this.pendEvaluateNumber = res.pendEvaluateNumber; //待评价
-    //         this.pendPayNumber = res.pendPayNumber; //待付款
-    //         this.pendReceiveNumber = res.pendReceiveNumber; //待收货
-    //         this.pendSendNumber = res.pendSendNumber; //待发货
-    //         console.log(this.pendPayNumber);
-    //       }
-    //     })
-    //     .catch(res => {});
-    // },
-    myOrder(status, page, type) {
+    myOrder(status, page) {
       let myOrder = {
         cmd: "myOrder",
         cid: this.cid,
         pageNow: page,
         status: status,
-        type: type
+        // type: type
       };
       console.log(myOrder);
       Request.postRequest(myOrder)
@@ -597,14 +647,12 @@ export default {
         wx.navigateTo({
           url: "/pages/order/orderdetials?id=" + JSON.stringify(obj)
         });
-      } else {
-        wx.navigateTo({
-          url: "/pages/order/orderdetials?id=" + JSON.stringify(obj)
-        });
       }
-      // wx.navigateTo({
-      //   url: "/pages/order/orderdetials?id=" + v.id
-      // });
+      //  else {
+      //   wx.navigateTo({
+      //     url: "/pages/order/orderdetials?id=" + JSON.stringify(obj)
+      //   });
+      // }
     },
     //收货
     queshou(v) {
@@ -624,6 +672,7 @@ export default {
               title: "收货成功",
               icon: "none"
             });
+            this.getNum();
             if (type == 1) {
               //  拼团
               this.pinTuanOrderList();

@@ -4,7 +4,7 @@
       <li class="list" v-for="(v,k) in dataList" :key="k" @click="details(v.orderid)">
         <h5 style="background:#fff">订单编号:{{v.orderid}}</h5>
         <van-card
-        thumb-mode="scaleToFill"
+          thumb-mode="scaleToFill"
           :num="v.number"
           :price="v.amount"
           :desc="v.skuName"
@@ -14,6 +14,7 @@
         <h3 style="background:#fff">总共￥{{v.finalPay}}</h3>
       </li>
     </ul>
+    <div class="no" v-if="show">暂无数据</div>
     <div class="loading" v-if="more">
       <span>没有更多了</span>
     </div>
@@ -30,7 +31,8 @@ export default {
       page: 1,
       totalPage: 1,
       dataList: [],
-      more:false
+      more: false,
+      show: false
     };
   },
   //监听属性 类似于data概念
@@ -41,10 +43,10 @@ export default {
   components: {},
   //生命周期 - 创建完成（可以访问当前this实例）
   onLoad(options) {
-      wx.setNavigationBarTitle({
+    wx.setNavigationBarTitle({
       title: "今日收益"
     });
-    this.dataList=[];
+    this.dataList = [];
     this.leaderid = options.id;
     this.loading();
   },
@@ -62,30 +64,32 @@ export default {
   //方法集合
   methods: {
     loading() {
+      this.show = false;
       let parmas = {
         cmd: "toDayEffectiveOrder",
         pageNow: this.page,
         leaderid: this.leaderid
       };
-      console.log(parmas)
+      console.log(parmas);
       Request.postRequest(parmas)
         .then(res => {
-          console.log(res)
+          console.log(res);
           if (res.result == 0) {
             this.totalPage = res.totalPage;
-            for (let i in res.dataList) {
-              this.dataList.push(res.dataList[i]);
-            }
-            if (this.page == this.totalPage) {
-              this.more = true;
+            if (res.dataList.length == 0) {
+              this.show = true;
+            } else {
+              for (let i in res.dataList) {
+                this.dataList.push(res.dataList[i]);
+              }
             }
           }
         })
         .catch(err => {});
     },
-    details(id){
-        console.log(id);
-      let obj={direct:1,id:id}
+    details(id) {
+      console.log(id);
+      let obj = { direct: 1, id: id };
       wx.navigateTo({
         url: "/pages/order/shequorderdetial?id=" + JSON.stringify(obj)
       });
@@ -108,13 +112,27 @@ export default {
 };
 </script>
 <style>
-  page{
-    width:100%;
-    min-height:100%;
-    background: #eee;
-  }
+page {
+  width: 100%;
+  min-height: 100%;
+  background: #eee;
+}
 </style>
 <style scoped>
+.no {
+  width: 100%;
+  height: 100%;
+  position: fixed;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 15px;
+  color: #333;
+  top: 124px;
+  left: 0;
+  bottom: 0;
+  z-index: 999;
+}
 .box {
 }
 .list {

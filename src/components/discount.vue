@@ -70,11 +70,6 @@ export default {
         url: "/pages/Good/gooddetials?id=" + JSON.stringify(obj)
       });
       }
-     
-     
-      // let ID = {};
-      // ID.id = id;
-      // wx.setStorageSync("first-shopID", JSON.stringify(ID));
     },
     //购物车图标
     shopcart(v) {
@@ -107,6 +102,7 @@ export default {
                 title: "添加购物车成功",
                 icon:'none'
               });
+              this.$api.getnum(this.cid)
               // this.gounum();
               // this.donghua = false;
             }

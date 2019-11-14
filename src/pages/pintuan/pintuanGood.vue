@@ -268,41 +268,12 @@ export default {
             this.addchu = false;
             this.addcity = res;
             this.receiverId = res.id;
-            // localStorage.setItem("add", JSON.stringify(this.add));
-            // //调取配送费
-            // this.getUserFreight(
-            //   this.add,
-            //   this.currentGood.id,
-            //   this.currentGood.skuId,
-            //   this.currentGood.number
-            // );
           } else {
             this.addchu = true;
           }
         })
         .catch(res => {});
     },
-    // getUserFreight(addID, shopID, skuId, count) {
-    //   this.freight = 0;
-    //   this.donghua = true;
-    //   let getUserFreight = {
-    //     cmd: "getUserFreight",
-    //     receiverId: addID,
-    //     productId: shopID,
-    //     skuId: skuId,
-    //     count: count
-    //   };
-    //   console.log(getUserFreight);
-    //   Request.postRequest(getUserFreight)
-    //     .then(res => {
-    //       this.donghua = false;
-    //       if (res.result == "0") {
-    //         console.log("配送费" + res.freight);
-    //         this.freight = Math.floor(res.freight * 100) / 100;
-    //       }
-    //     })
-    //     .catch(res => {});
-    // },
     noleader() {
       if (this.leaderid == "") {
         wx.showToast({

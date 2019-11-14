@@ -1,8 +1,8 @@
 <template>
   <div class="contain" ref="list">
-    <div v-if="pointyin==true" class="shopkong" @click="init">请点我重新定位</div>
-    <div class="shop" v-else>
-      <shop :dataList="dataList" @goDetail="goDetailID" v-if="nearyin==false"></shop>
+    <!-- <div v-if="dataList.length==0" class="shopkong" @click="init">请点我重新定位</div> -->
+    <div class="shop">
+      <shop :dataList="dataList" @goDetail="goDetailID" v-if="dataList.length!=0"></shop>
       <div v-else class="kong">附近暂无商店</div>
       <div class="loading" v-if="more">
         <span>没有更多了</span>
@@ -25,8 +25,6 @@ export default {
       dataList: [],
       page: 1,
       gou: 0,
-      nearyin: false,
-      pointyin: false,
       center: {},
       totalPage: 1,
       more: false
@@ -36,7 +34,7 @@ export default {
     shop
   },
   onLoad() {
-      wx.setNavigationBarTitle({
+    wx.setNavigationBarTitle({
       title: "附近商家"
     });
     this.cid = JSON.parse(wx.getStorageSync("user")).cid;
@@ -72,27 +70,22 @@ export default {
       Request.postRequest(nearbyShop)
         .then(res => {
           console.log(res);
-          this.totalPage = res.totalPage;
           if (res.result == 0) {
+          this.totalPage = res.totalPage;
             for (let i in res.dataList) {
               res.dataList[i].star = Number(res.dataList[i].stars);
               res.dataList[i].spacing = (
                 Math.round(res.dataList[i].spacing / 100) / 10
               ).toFixed(1);
-              this.dataList.push(res.dataList[i]);
+              if (res.dataList[i].spacing <= 3) {
+                this.dataList.push(res.dataList[i]);
+              }
+              // if(this.totalPage==1){
+              //   this.more=true;
+              // }
             }
 
             console.log(this.dataList);
-            // wx.setStorage({
-            //   key: "nearbyShop",
-            //   data: JSON.stringify(this.dataList)
-            // });
-            // this.donghua = false;
-            // if (this.dataList.length > 0) {
-            //   this.nearyin = false;
-            // } else {
-            //   this.nearyin = true;
-            // }
           }
         })
         .catch(res => {});

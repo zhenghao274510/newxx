@@ -40,7 +40,7 @@
         <span>提交</span>
       </div>
       <div class="persion">
-        <h4>身份证照片</h4>
+        <h4>证件照片</h4>
         <ul class="upimg">
           <li>
             <div>
@@ -100,8 +100,8 @@ export default {
     });
   },
   mounted() {
-    if (wx.getStorageSync("center")) {
-      let leaderInfo = JSON.parse(wx.getStorageSync("center"));
+    if (wx.getStorageSync("leaderInfo")) {
+      let leaderInfo = JSON.parse(wx.getStorageSync("leaderInfo"));
       console.log(leaderInfo);
       this.leaderid = leaderInfo.leaderid;
       this.name = leaderInfo.name;
@@ -130,7 +130,7 @@ export default {
       this.province = adduser.province;
       this.city = adduser.city;
       this.town = adduser.town;
-      this.address = adduser.province + adduser.city + adduser.town;
+      this.address = adduser.add;
       console.log(adduser);
     }
   },
@@ -243,7 +243,9 @@ export default {
               title: "修改成功"
             });
             console.log(res);
-            self.$router.go(-1);
+            setTimeout(()=>{
+              self.$router.go(-1);
+            },1000)
           } else {
             wx.showToast({
               title: res.resultNote

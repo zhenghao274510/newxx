@@ -90,6 +90,7 @@ export default {
   },
   methods: {
     initDta() {
+      this.show=false;
       let Category = {
         cmd: "selectGoodsByCategory",
         orderType: this.sorts,

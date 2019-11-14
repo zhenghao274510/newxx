@@ -17,7 +17,7 @@
       </div>
 
       <div class="search_input">
-        <input confirm-type="search" v-model="keywords" placeholder="请输入关键字" />
+        <input confirm-type="search" v-model="keywords" placeholder="请输入关键字" @confirm="goSearch" />
       </div>
       <span @click="goSearch">搜索</span>
     </div>

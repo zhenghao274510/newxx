@@ -1,10 +1,7 @@
 // import QQMapWX from "@/common/jsdk/qqmap-wx-jssdk";
 
 const http = {
-  getRequest(data = {}, method = "get") {
-    wx.showLoading({
-      title: '加载中', //数据请求前loading，提高用户体验
-    })
+ noLoading(data = {}, method = "post") {
     return new Promise((resolve, reject) => {
       wx.request({
         url: encodeURI("https://m.scxxsx.com/api/customer/services?json=" + JSON.stringify(data)),
@@ -17,7 +14,6 @@ const http = {
         success: function (res) {
           // success
           resolve(res.data);
-          wx.hideLoading();
 
           if (res.statusCode != 200) {
             wx.showToast({
@@ -30,11 +26,9 @@ const http = {
         },
         fail: function (error) {
           // fail
-          wx.hideLoading();
           reject(error); //请求失败
         },
         complete: function () {
-          wx.hideLoading();
           // complete
         }
       })

@@ -103,13 +103,13 @@
       <div class="user_coupon">
         <span>订单信息</span>
       </div>
-      <div class="user_coupon">
+      <div class="user_coupon" >
         <span>订单号</span>
         <div class="c_coupon">
           <span>{{orders.id}}</span>
         </div>
       </div>
-      <div class="user_msg">
+      <div class="user_msg" >
         <span>收货地址</span>
         <div class="address">
           <p>{{orders.address}}</p>
@@ -233,6 +233,11 @@ export default {
     this.orderDetail(this.id);
   },
   methods: {
+    // copy(ind){
+    //   switch(ind){
+
+    //   }
+    // },
     shentui() {
       wx.navigateTo({
         url: "/pages/order/shenqingtui?ids=" + this.id
@@ -293,26 +298,6 @@ export default {
         })
         .catch(res => {});
     },
-    // set() {
-    //   if (this.datas == "取消订单") {
-    //     this.$router.push({
-    //       name: "cancel",
-    //       params: {
-    //         num: 1,
-    //         act: this.$route.query.num,
-    //         id: this.$route.query.id
-    //       }
-    //     });
-    //   } else if (this.datas == "删除订单") {
-
-    //   } else if (this.datas == "取消申请") {
-
-    //   } else {
-    //     wx.navigateTo({
-    //       url: "/pages/order/quxiaoorder?id=" + this.id
-    //     });
-    //   }
-    // },
     checkComment() {
       wx.navigateTo({
         url: "/pages/goodPing/goodPingDetails?id=" + this.id

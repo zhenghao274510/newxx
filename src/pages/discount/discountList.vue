@@ -12,12 +12,11 @@
               <div class="list-left">
                 <span
                   style="color: red;font-size: 16px;"
-                  v-if="v.price!==undefined"
-                >￥{{v.price}}{{v.unit}}</span>
+                >￥{{v.price}}</span>
                 <span
-                  style="color: red;font-size: 16px;"
-                  v-if="v.price==undefined"
-                >￥{{v.originalPrice}}{{v.unit}}</span>
+                  style="color: #dedede;font-size: 16px; text-decoration: line-through;"
+                  v-if="v.discount==1"
+                >￥{{v.originalPrice}}</span>
               </div>
               <img src="/static/img/gouwuche2.png" alt @click.stop="shopcart(v)" />
             </div>

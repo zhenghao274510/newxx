@@ -124,9 +124,7 @@ export default {
             for (let i in res.dataList) {
               this.recommends.push(res.dataList[i]);
             }
-             if(this.page==this.totalPage){
-              this.more=true;
-            }
+    
             console.log(this.recommends);
           }
         })
@@ -145,9 +143,6 @@ export default {
             for (let s in res.dataList) {
               res.dataList[s].star = Number(res.dataList[s].stars);
               this.dataList.push(res.dataList[s]);
-            }
-            if(this.page==this.totalPage){
-              this.more=true;
             }
             console.log(this.dataList);
             // localStorage.setItem("storeshop", JSON.stringify(this.dataList));

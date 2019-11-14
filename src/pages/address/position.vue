@@ -1,7 +1,7 @@
 <template>
   <div class="box">
     <div class="search">
-      <input type="text" v-model="keywords" placeholder="请输入关键字" />
+      <input type="text" v-model="keywords" placeholder="请输入关键字" @confirm="search" />
       <span @click="search">搜索</span>
     </div>
     <map

@@ -3,9 +3,9 @@
     <div class="box">
       <div class="pay">
         <img src="/static/img/chenggong.png" alt />
-        <p>您的信息已提交平台进行审核 </p>
-            <p>请耐心等待审核结果</p>
-        <div @click="cha">回到个人中心</div>
+        <p>您的申请已提交平台 </p>
+            <p>请耐心等待</p>
+        <div @click="back">回到个人中心</div>
       </div>
     </div>
   </div>

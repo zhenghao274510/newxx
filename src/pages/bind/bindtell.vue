@@ -12,10 +12,10 @@
             <span v-if="btnState">s</span>
           </button>
         </div>
-        <div class="tel zhu" style="border: none;">
-          <checkbox checked-color="rgb(114,209,65)" @click="onChange" size="12"></checkbox>
+        <div class="tel zhu" style="border: none;" @click.stop="onChange">
+          <checkbox checked-color="rgb(114,209,65)"  size="12"  :checked="checked"></checkbox>
           <span class="text">我已阅读并同意</span>
-          <span class="text" style="color: rgb(114,209,65);" @click="xie">《用户注册协议》</span>
+          <span class="text" style="color: rgb(114,209,65);" @click.stop="xie">《用户注册协议》</span>
         </div>
          <form @submit="formid" report-submit="true">
         <div class="btn" @click="submit" formType="submit">确定</div>

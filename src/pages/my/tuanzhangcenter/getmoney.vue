@@ -3,7 +3,7 @@
     <ul>
       <li>
         <h4>发行卡:</h4>
-        <input type="text" placeholder="列如:中国银行" v-model="cardbank" />
+        <input type="text" placeholder="列如:中国银行" v-model="cardbank" cursor-spacing="40" />
       </li>
       <li>
         <h4>持卡人:</h4>
@@ -11,7 +11,7 @@
       </li>
       <li>
         <h4>提现账户：</h4>
-        <input type="text" placeholder="请输入提现账户" v-model="cardnumber" />
+        <input type="number" placeholder="请输入提现账户" v-model="cardnumber" />
       </li>
     </ul>
     <div class="money-info">
@@ -20,10 +20,15 @@
         <span>￥</span>
         <input type="number" placeholder="输入提现金额" v-model="money" />
       </div>
-      <p>
+      <p v-if="money!=0">
         本次提现扣除手续费:
-        <span>￥10元</span>
+        <span>￥{{total}}元</span>
       </p>
+      <p v-else>
+        当前提现手续费率为:
+        <span>{{proportion}}</span>
+      </p>
+
       <h4>备注：</h4>
       <div>
         <input type="text" placeholder="请输入备注信息" v-model="remark" />
@@ -46,13 +51,18 @@ export default {
       cardbank: "",
       name: "",
       cardnumber: "",
-      money: "",
+      money: 0,
       remark: "",
-      leaderid:''
+      leaderid: "",
+      proportion: ''
     };
   },
   //监听属性 类似于data概念
-  computed: {},
+  computed: {
+    total(){
+      return  Number(this.money) *this.proportion
+    }
+  },
   //监控data中的数据变化
   watch: {},
   //import引入的组件需要注入到对象中才能使用
@@ -60,19 +70,26 @@ export default {
   //生命周期 - 创建完成（可以访问当前this实例）
   created() {},
   //生命周期 - 挂载完成（可以访问DOM元素）
-  mounted() {},
+  mounted() {
+    this.money=""
+  },
   //方法集合
   onLoad() {
-      wx.setNavigationBarTitle({
+    wx.setNavigationBarTitle({
       title: "申请提现"
     });
-    this.leaderid=JSON.parse(wx.getStorageSync('leaderInfo')).leaderid;
-    console.log(this.leaderid);
-    if(wx.getStorageSync('carInfo')){
-      let carInfo=JSON.parse(wx.getStorageSync('carInfo'));
-      this.cardbank=carInfo.cardbank;
-      this.cardnumber=carInfo.cardnumber;
-      this.name=carInfo.name;
+    if (wx.getStorageSync("leaderInfo")) {
+      let leaderInfo = JSON.parse(wx.getStorageSync("leaderInfo"));
+      console.log(leaderInfo)
+      this.leaderid = leaderInfo.leaderid;
+      this.proportion =parseFloat(leaderInfo.proportion);
+      console.log(this.proportion)
+    }
+    if (wx.getStorageSync("carInfo")) {
+      let carInfo = JSON.parse(wx.getStorageSync("carInfo"));
+      this.cardbank = carInfo.cardbank;
+      this.cardnumber = carInfo.cardnumber;
+      this.name = carInfo.name;
     }
   },
   methods: {
@@ -81,31 +98,33 @@ export default {
       if (this.cardbank == "") {
         wx.showToast({
           title: "请输入银行类别",
-          icon:'none'
+          icon: "none"
         });
         return false;
       } else if (this.name == "") {
         wx.showToast({
           title: "请输入持卡人姓名",
-          icon:"none"
+          icon: "none"
         });
       } else if (this.cardnumber == "") {
         wx.showToast({
-          title: "请输入银行卡号"
+          title: "请输入银行卡号",
+          icon: "none"
         });
       } else if (this.money == "") {
         wx.showToast({
           title: "请输入提现金额",
-          icon:'none'
+          icon: "none"
         });
       } else if (!this.isHan(this.cardbank)) {
         wx.showToast({
           title: "请输入正确的银行类别",
-          icon:"none"
+          icon: "none"
         });
-      }else if (!this.isHan(this.name)) {
+      } else if (!this.isHan(this.name)) {
         wx.showToast({
-          title: "请输入正确的持卡人姓名"
+          title: "请输入正确的持卡人姓名",
+          icon: "none"
         });
       }
       // else if (!this.bankCardValid(this.cardnumber)) {
@@ -114,36 +133,42 @@ export default {
       //     icon:"none"
       //   });
       // }
-      else if(this.money<0){
-         wx.showToast({
+      else if (this.money < 0) {
+        wx.showToast({
           title: "请输入正确的金额",
-          icon:"none"
+          icon: "none"
         });
-      }else{
-        let parmas={
-          cmd:'subWithdraw',
-          leaderid:this.leaderid,
-          bankname:this.cardbank,
-          name:this.name,
-          account:this.cardnumber,
-          amount:this.money,
-          remark:this.remark
-        }
-        Request.postRequest(parmas).then(res=>{
-            if(res.result==0){
-              let carInfo={};
-              carInfo.cardbank=this.cardbank;
-              carInfo.cardnumber=this.cardnumber;
-              carInfo.name=this.name;
-              wx.setStorageSync("carInfo", JSON.stringify(carInfo));                
-               console.log(res);
-              this.$router.replace("/pages/my/tuanzhangcenter/tixianshenhe")
-            }else{
+      } else {
+        let parmas = {
+          cmd: "subWithdraw",
+          leaderid: this.leaderid,
+          bankname: this.cardbank,
+          name: this.name,
+          account: this.cardnumber,
+          amount: this.money,
+          remark: this.remark,
+          fee: this.total
+        };
+        Request.postRequest(parmas)
+          .then(res => {
+            if (res.result == 0) {
+              let carInfo = {};
+              carInfo.cardbank = this.cardbank;
+              carInfo.cardnumber = this.cardnumber;
+              carInfo.name = this.name;
+              wx.setStorageSync("carInfo", JSON.stringify(carInfo));
+              console.log(res);
+              setTimeout(() => {
+                this.$router.replace("/pages/my/tuanzhangcenter/tixianshenhe");
+              }, 1000);
+            } else {
               wx.showToast({
-                title:res.resultNote
-              })
+                title: res.resultNote,
+                icon: "none"
+              });
             }
-        }).catch(err=>{})
+          })
+          .catch(err => {});
       }
     },
     isHan(value) {
@@ -154,15 +179,15 @@ export default {
         return false;
       }
     },
-      // 银行卡号
-  bankCardValid(value) {
-    var re = new RegExp(/^([1-9]{1})(\d{15}|\d{17}|\d{18})$/);
-    if (re.test(value)) {
+    // 银行卡号
+    bankCardValid(value) {
+      var re = new RegExp(/^([1-9]{1})(\d{15}|\d{17}|\d{18})$/);
+      if (re.test(value)) {
         return true;
-    } else {
-      return false;
+      } else {
+        return false;
+      }
     }
-  }
   },
   //生命周期 - 创建之前
   beforeCreate() {},
@@ -204,6 +229,7 @@ h4 {
         font-size: 13px;
         color: #999;
         padding-left: 20px;
+        box-sizing: border-box;
       }
 
       h4 {
@@ -249,18 +275,19 @@ h4 {
 .end {
   height: 50px;
 }
-.button{
-  width:100%;
+
+.button {
+  width: 100%;
   padding: 10px 5px;
   box-sizing: border-box;
- 
 }
-.button span{
+
+.button span {
   display: block;
   height: 45px;
   background: #72D241;
   border-radius: 6px;
-  color:#fff;
+  color: #fff;
   line-height: 45px;
   text-align: center;
   font-size: 17px;

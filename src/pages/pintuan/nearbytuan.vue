@@ -122,10 +122,11 @@ export default {
       let parmas = {
         cmd: "nearbyGroupleader",
         cid: this.cid,
-        lon: this.center.longitude,
-        lat: this.center.latitude,
+        lon: this.center.longitude+"",
+        lat: this.center.latitude+"",
         pageNow: this.page
       };
+      console.log(parmas)
       Request.postRequest(parmas)
         .then(res => {
           console.log(res);

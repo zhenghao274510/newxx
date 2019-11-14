@@ -31,6 +31,7 @@ export default {
   components: {},
   methods: {
     classify(e) {
+      e.direct=this.direct;
       if (this.direct == 100) {
         wx.navigateTo({
           url: "/pages/class/onepinclass?id=" + JSON.stringify(e)

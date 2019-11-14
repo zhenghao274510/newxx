@@ -8,7 +8,7 @@
               <div class="s_right">
                 <p>
                   {{v.nickName}}
-                  <span @click.stop="del(v.id)">删除</span>
+                  <span @click.stop="del(v.id,k)">删除</span>
                 </p>
                 <div class="s_top">
                   <div class="ping">
@@ -99,7 +99,7 @@ export default {
           if (res.result == 0) {
             this.totalPage = res.totalPage;
             for(let i in res.dataList){
-              // res.dataList[i].createTime=res.dataList[i].createTime.replace(/'.'/g,'-')
+              res.dataList[i].createTime=res.dataList[i].createTime.replace(/\./g,'-');
               this.dataList.push(res.dataList[i]);
             }
             // this.dataList = res.dataList;
@@ -107,7 +107,7 @@ export default {
         })
         .catch(res => {});
     },
-    del(id) {
+    del(id,k) {
       console.log("删除", id);
       let deleteEvalute = {
         cmd: "deleteEvalute",
@@ -117,8 +117,7 @@ export default {
         .then(res => {
           console.log(res);
           if (res.result == 0) {
-             this.dataList=[];
-            this.evaluteList();
+           this.dataList.splice(k, 1);
           }
         })
         .catch(res => {});

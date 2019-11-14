@@ -9,7 +9,7 @@
         <div class="list-text">{{v.name}}</div>
         <div class="list-price">
           <div class="list-left">
-            <span  v-if="v.price!==undefined">￥{{v.price}}</span>
+            <span v-if="v.price!==undefined">￥{{v.price}}</span>
             <s v-if="v.discount==1">￥{{v.originalPrice}}</s>
           </div>
           <img src="/static/img/gouwuche2.png" alt @click.stop="shopcart(v)" />
@@ -31,8 +31,8 @@ export default {
       type: Array,
       default: []
     },
-    direct:{
-      type:Number,
+    direct: {
+      type: Number,
       default: 0
     }
   },
@@ -42,37 +42,35 @@ export default {
     };
   },
   onLoad() {
-     if (wx.getStorageSync("user")) {
+    if (wx.getStorageSync("user")) {
       this.cid = JSON.parse(wx.getStorageSync("user")).cid;
     }
   },
   methods: {
     goDetail(id) {
-        console.log(id);
-       let obj={}
-       obj.id=id;
-      if(this.direct==100){
-        obj.type=1;
-          wx.navigateTo({
-        url: "/pages/pintuan/gooddetailspin?id=" + JSON.stringify(obj)
-      });
-      }else if(this.direct==200){
-        obj.type=2;
+      console.log(id);
+      let obj = {};
+      obj.id = id;
+      if (this.direct == 100) {
+        obj.type = 1;
         wx.navigateTo({
-        url: "/pages/Good/gooddetials?id=" + JSON.stringify(obj)
-      });
-      }else{
-         obj.type=0;
-            wx.navigateTo({
-        url: "/pages/Good/gooddetials?id=" + JSON.stringify(obj)
-      });
+          url: "/pages/pintuan/gooddetailspin?id=" + JSON.stringify(obj)
+        });
+      } else if (this.direct == 200) {
+        obj.type = 2;
+        wx.navigateTo({
+          url: "/pages/Good/gooddetials?id=" + JSON.stringify(obj)
+        });
+      } else {
+        obj.type = 0;
+        wx.navigateTo({
+          url: "/pages/Good/gooddetials?id=" + JSON.stringify(obj)
+        });
       }
-     
-    
     },
     shopcart(v) {
-      if (this.cid==undefined) {
-        console.log(this.cid,31)
+      if (this.cid == undefined) {
+        console.log(this.cid, 31);
         wx.showModal({
           title: "温馨提醒！",
           content: "你还没有绑定手机号,请先绑定手机号,确认信息",
@@ -100,8 +98,9 @@ export default {
             if (res.result == 0) {
               wx.showToast({
                 title: "添加购物车成功",
-                icon:'none'
+                icon: "none"
               });
+              this.$api.getnum(this.cid);
               // this.gounum();
               // this.donghua = false;
             }
@@ -165,8 +164,9 @@ export default {
         margin: 0.2rem 0;
         overflow: hidden;
         text-overflow: ellipsis;
-        white-space: nowrap;
-        line-height: 20px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
       }
 
       .list-price {
@@ -174,21 +174,22 @@ export default {
         display: flex;
         justify-content: space-between;
         align-items: center;
-         .list-left {
-            display: flex;
 
-            span {
-              font-size: 16px !important;
-              color: red;
-            }
+        .list-left {
+          display: flex;
 
-            s {
-              font-size: 14px;
-              text-decoration: line-through;
-              color: #dedede;
-              margin-left: 10px;
-            }
+          span {
+            font-size: 16px !important;
+            color: red;
           }
+
+          s {
+            font-size: 14px;
+            text-decoration: line-through;
+            color: #dedede;
+            margin-left: 10px;
+          }
+        }
 
         img {
           width: 0.4rem;

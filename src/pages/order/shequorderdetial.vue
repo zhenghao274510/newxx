@@ -73,7 +73,7 @@
       <!-- 拼团订单 联系团长 -->
       <div class="linktwo">
         <div class="linkchild one" @click="tel(orders.smobile)">
-          <img src="/static/img/tel.png" alt />
+         <img src="/static/img/dianhua1@2x.png" alt />
           <span>联系商家</span>
         </div>
         <div class="linkchild two" @click="tel(orders.phone)">
@@ -83,7 +83,7 @@
       </div>
     </div>
     <div class="orders">
-      <div class="user_coupon">
+      <div class="user_coupon" >
         <span>订单信息</span>
       </div>
       <div class="user_coupon">
@@ -92,7 +92,7 @@
           <span>{{orders.id}}</span>
         </div>
       </div>
-      <div class="user_msg">
+      <div class="user_msg" >
         <span>收货地址</span>
         <div class="address">
           <p>{{orders.address}}</p>
@@ -231,6 +231,11 @@ export default {
   components: {},
   mounted() {},
   methods: {
+    // copy(ind){
+    //    switch(ind){
+
+    //    }
+    // },
     tiaoimg(id) {
       console.log(id)
       let obj={type:1,id:id}
@@ -630,6 +635,10 @@ export default {
         color: rgb(114, 209, 65);
         margin-left: 0.2rem;
       }
+      img{
+        width:.4rem;
+        height:.4rem;
+      }
     }
 
     .two {
@@ -639,6 +648,10 @@ export default {
         font-size: 14px;
         color: #fff;
         margin-left: 0.2rem;
+      }
+      img{
+        width:.6rem;
+        height:.6rem;
       }
     }
 
@@ -651,10 +664,6 @@ export default {
       align-items: center;
       font-size: 14px;
 
-      img {
-        width: 0.6rem;
-        height: 0.6rem;
-      }
     }
   }
 

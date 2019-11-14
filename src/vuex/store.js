@@ -5,7 +5,9 @@ Vue.use(Vuex)
 export default new Vuex.Store({
     state: {
         count: 0,
-        ordertarba:3
+        ordertarba:3,
+        login:false,
+        user:{}
       }, 
       //  修改 全局数据
       mutations: {    

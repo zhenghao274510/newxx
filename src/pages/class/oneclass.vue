@@ -95,6 +95,7 @@ export default {
   methods: {
     initDta() {
       // this.list=[];
+      this.show=false;
       let Category = {
         cmd: "selectGoodsByCategory",
         orderType: this.sorts,
@@ -110,6 +111,9 @@ export default {
               for (var i = 0; i < res.dataList.length; i++) {
                 res.dataList[i].type=this.direct;
                 this.list.push(res.dataList[i]);
+              }
+              if(res.dataList.length==0){
+                this.show=true;
               }
           }
         })

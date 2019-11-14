@@ -360,7 +360,6 @@ export default {
             this.detailList.push(res);
             this.goods.title = res.name;
             this.goods.picture = res.images[0];
-
             this.donghua = false;
           }
         })
@@ -417,7 +416,6 @@ export default {
       var second = date.getSeconds();
       minute = minute < 10 ? "0" + minute : minute;
       second = second < 10 ? "0" + second : second;
-      // return y + '-' + m + '-' + d + ' ' + h + ':' + minute + ':' + second;//年月日时分秒
       return y + "-" + m + "-" + d + " " + h + ":" + minute;
     },
 
@@ -450,7 +448,8 @@ export default {
                 });
               } else {
                 wx.showToast({
-                  title: "取消收藏成功"
+                  title: "取消收藏成功",
+                  icon:"none"
                 });
               }
             }

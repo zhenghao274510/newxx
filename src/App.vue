@@ -31,7 +31,6 @@ export default {
 </script>
 
 <style>
-@import url('./common/css/comm.css');
 @import url('./common/css/reset.css');
 .container {
   height: 100%;

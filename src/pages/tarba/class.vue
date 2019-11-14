@@ -5,7 +5,7 @@
       <li
         v-for="(item,index) in title "
         :key="index"
-        :class="{'active':activeT==index}"
+        :class="{'active':activeT==index,'one':index==0,'last':index==1}"
         @click="changactive(index)"
       >{{item}}</li>
     </ul>
@@ -50,12 +50,14 @@ import Request from "@/common/js/request";
 export default {
   data() {
     return {
-      title: ["普通", "拼团", "拿货团"],
+      // title: ["精品", "拼团", "拿货团"],
+      title: ["精品", "拼团"],
       activeT: 0,
       active: 0,
       dataList: [],
       contentId: "",
       actindex: 0,
+      cid:'',
       navulHeight: 0, // 导航里ul高度
       navItemHeight: 0, // 每个导航高度
       listHeight: [], // foods内部块的高度
@@ -73,6 +75,14 @@ export default {
       this.activeT = 0;
     }
     this.classify();
+  },
+  onShow(){
+    if(wx.getStorageSync("user")){
+      this.cid=JSON.parse(wx.getStorageSync("user")).cid;
+      if(this.cid!=undefined){
+        this.$api.getnum(this.cid)
+      }
+    }
   },
   onShareAppMessage() {
     return {
@@ -145,19 +155,20 @@ export default {
       let scrollTop = e.target.scrollTop;
       // console.log(scrollTop)
       let length = this.listHeight.length;
-      if (scrollTop >= this.listHeight[length - 1] - this.contentHeight) {
-        return;
+      if (scrollTop >=this.listHeight[length - 1] - this.contentHeight) {
+       this.actindex=length-1;
       } else if (scrollTop > 0 && scrollTop < this.listHeight[0]) {
         this.actindex = 0;
       }
       for (let i = 0; i < length; i++) {
         if (
-          scrollTop >= this.listHeight[i - 1] &&
+          scrollTop >this.listHeight[i - 1] &&
           scrollTop < this.listHeight[i]
         ) {
           this.actindex = i;
         }
       }
+
     },
     calculateHeight() {
       //  创建查询对象
@@ -167,14 +178,15 @@ export default {
       query.selectAll(".right-item").boundingClientRect(rects => {
         console.log(rects);
         rects.forEach(rect => {
-          h += rect.height;
+          h += rect.height-40;
           this.listHeight.push(h);
         });
-        console.log(this.listHeight);
+        // console.log(this.listHeight);
       });
       query.select(".right-menu").boundingClientRect(rect => {
         console.log(rect);
         this.contentHeight = rect.height;
+        console.log(this.contentHeight)
       });
       query.select(".left-menu").boundingClientRect(rect => {
         this.navulHeight = rect.height;
@@ -223,6 +235,14 @@ page {
       color: #72D241;
       height: 24px;
       line-height: 24px;
+    }
+    .one{
+      border-radius:5px 0 0 5px;
+      border-right:none;
+    }
+    .last{
+      border-radius:0 5px 5px 0;
+      border-left:none;
     }
 
     .active {

@@ -96,7 +96,7 @@
       <!-- 拼团订单 联系团长 -->
       <div class="linktwo">
         <div class="linkchild one" @click="tel(orders.smobile)">
-          <img src="/static/img/tel.png" alt />
+          <img src="/static/img/dianhua1@2x.png" alt />
           <span>联系商家</span>
         </div>
         <div class="linkchild two" @click="tel(orders.phone)">
@@ -115,7 +115,7 @@
           <span>{{orders.id}}</span>
         </div>
       </div>
-      <div class="user_msg">
+      <div class="user_msg" >
         <span>收货地址</span>
         <div class="address">
           <p>{{orders.address}}</p>
@@ -125,7 +125,7 @@
           </div>
         </div>
       </div>
-      <div class="beizhu_msg">
+      <div class="beizhu_msg" >
         <span>备注信息：</span>
         <p>{{orders.remark}}</p>
       </div>
@@ -250,6 +250,12 @@ export default {
   onShow() {
     this.orderDetail(this.id);
   },
+  // copy(ind){
+  //    switch(ind){
+  //      case 0:
+
+  //    }
+  // },
   methods: {
     shentui() {
       wx.navigateTo({
@@ -647,6 +653,10 @@ export default {
         color: rgb(114, 209, 65);
         margin-left: 0.2rem;
       }
+       img{
+        width:.4rem;
+        height:.4rem;
+      }
     }
 
     .two {
@@ -656,6 +666,10 @@ export default {
         font-size: 14px;
         color: #fff;
         margin-left: 0.2rem;
+      }
+       img {
+        width: 0.6rem;
+        height: 0.6rem;
       }
     }
 
@@ -668,10 +682,7 @@ export default {
       align-items: center;
       font-size: 14px;
 
-      img {
-        width: 0.6rem;
-        height: 0.6rem;
-      }
+     
     }
   }
 

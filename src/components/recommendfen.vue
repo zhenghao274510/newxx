@@ -9,8 +9,8 @@
         <div class="list-text">{{v.name}}</div>
         <div class="list-price">
           <div class="list-left">
-            <span  v-if="v.price!==undefined">￥{{v.price}}</span>
-            <s  v-if="v.discount==1">￥{{v.originalPrice}}</s>
+            <span v-if="v.price!==undefined">￥{{v.price}}</span>
+            <s v-if="v.discount==1">￥{{v.originalPrice}}</s>
           </div>
           <img src="/static/img/gouwuche2.png" alt @click.stop="shopcart(v)" />
         </div>
@@ -34,7 +34,7 @@ export default {
   },
   data() {
     return {
-      cid:''
+      cid: ""
     };
   },
   onLoad() {
@@ -52,23 +52,23 @@ export default {
       console.log("到底了");
     },
     goDetail(item) {
-      let obj={type:item.type,id:item.id}
-      if (item.type==1) {
+      let obj = { type: item.type, id: item.id };
+      if (item.type == 1) {
         wx.navigateTo({
           url: "/pages/pintuan/gooddetailspin?id=" + JSON.stringify(obj)
         });
-      } else if(item.type==2) {
+      } else if (item.type == 2) {
         wx.navigateTo({
           url: "/pages/Good/gooddetials?id=" + JSON.stringify(obj)
         });
-      }else{
-         wx.navigateTo({
+      } else {
+        wx.navigateTo({
           url: "/pages/Good/gooddetials?id=" + JSON.stringify(obj)
         });
       }
     },
     shopcart(v) {
-      if (this.cid ==undefined) {
+      if (this.cid == undefined) {
         console.log(21);
         wx.showModal({
           title: "温馨提醒！",
@@ -98,6 +98,7 @@ export default {
               wx.showToast({
                 title: "添加购物车成功"
               });
+              this.$api.getnum(this.cid);
             }
           })
           .catch(res => {});
@@ -158,8 +159,9 @@ export default {
         margin: 0.2rem 0;
         overflow: hidden;
         text-overflow: ellipsis;
-        white-space: nowrap;
-        line-height: 14px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
       }
 
       .list-price {
@@ -167,21 +169,22 @@ export default {
         display: flex;
         justify-content: space-between;
         align-items: center;
-         .list-left {
-            display: flex;
 
-            span {
-              font-size: 16px !important;
-              color: red;
-            }
+        .list-left {
+          display: flex;
 
-            s {
-              font-size: 14px;
-              text-decoration: line-through;
-              color: #dedede;
-              margin-left: 10px;
-            }
+          span {
+            font-size: 16px !important;
+            color: red;
           }
+
+          s {
+            font-size: 14px;
+            text-decoration: line-through;
+            color: #dedede;
+            margin-left: 10px;
+          }
+        }
 
         img {
           width: 0.4rem;

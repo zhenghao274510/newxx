@@ -135,9 +135,9 @@
   ],
   "window": {
     "backgroundTextStyle": "light",
-    "navigationBarBackgroundColor": "#fff",
+    "navigationBarBackgroundColor": "#72D241",
     "navigationBarTitleText": "山城乡鲜",
-    "navigationBarTextStyle": "black",
+    "navigationBarTextStyle": "white",
     "onReachBottomDistance" :50,
     "withShareTicket":true
   },
@@ -150,7 +150,6 @@
     "backgroundColor": "#ffffff",
     "selectedColor": "#72D241",
     "borderStyle": "white",
-
     "list": [{
         "text": "首页",
         "pagePath": "pages/tarba/home",

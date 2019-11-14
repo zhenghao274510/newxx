@@ -2,7 +2,7 @@
   <div class="list">
       <div class="search">
         <div class="search_input">
-        <input confirm-type="search" v-model="keywords" placeholder="请输入商品名称">
+        <input confirm-type="search" v-model="keywords" placeholder="请输入商品名称" @confirm="goSearch">
       </div>
       <span @click="goSearch">搜索</span>
       </div>

@@ -11,7 +11,7 @@
         :sticky="true"
         @change="shopper"
       >
-        <van-tab title="客户已下单" id="0">
+        <van-tab :title="topNav[0]" id="0">
           <ul>
             <li v-for="(v,k) in list" :key="k" @click.stop="order(v)">
               <h3>
@@ -26,7 +26,7 @@
                 <span v-if="v.state2 == 8">已退款</span>
                 <span v-if="v.state2 == 9">拒绝退款</span>
               </h3>
-          <!-- 2待发货 3已发货 4待取货 5已完成  6已取消 7待退款 8已退款 9拒绝退款 -->
+              <!-- 2待发货 3已发货 4待取货 5已完成  6已取消 7待退款 8已退款 9拒绝退款 -->
               <div class="wrapper">
                 <img :src="v.productImage" alt lazy-load />
                 <div class="s_right">
@@ -48,13 +48,13 @@
             </li>
           </ul>
         </van-tab>
-        <van-tab title="商家已发货" id="1">
+        <van-tab :title="topNav[1]" id="1">
           <ul>
             <li v-for="(v,k) in list" :key="k" @click.stop="order(v)">
               <h3>
                 <span>订单编号：{{v.id}}</span>
                 <!-- <span style="color: red;" v-if="v.state2 == 0">待付款</span>
-                <span v-if="v.state2 == 1">准备出仓</span> -->
+                <span v-if="v.state2 == 1">准备出仓</span>-->
                 <span v-if="v.state2 == 2" style="color: red;">待发货</span>
                 <span v-if="v.state2 == 3" style="color: red;">待收货</span>
                 <span v-if="v.state2 == 4" style="color: red;">待评价</span>
@@ -74,7 +74,7 @@
                   <p>{{v.skuName}}</p>
                   <div class="s_price"></div>
                 </div>
-                <div class="pin_price" >
+                <div class="pin_price">
                   <span style="color:#999;">X{{v.number}}</span>
                 </div>
               </div>
@@ -85,7 +85,7 @@
             </li>
           </ul>
         </van-tab>
-        <van-tab title="客户待取货" id="2">
+        <van-tab :title="topNav[2]" id="2">
           <ul>
             <li v-for="(v,k) in list" :key="k" @click.stop="order(v)">
               <h3>
@@ -125,7 +125,7 @@
           <!-- </van-pull-refresh> -->
           <!-- </van-list> -->
         </van-tab>
-        <van-tab title="订单已完成" id="3">
+        <van-tab :title="topNav[3]" id="3">
           <!-- <van-list
             v-model="loading"
             :finished="finished"
@@ -191,13 +191,15 @@ export default {
       page: 1,
       totalPage: 2,
       list: [],
-      // pendEvaluateNumber: "", //待评价
-      // pendPayNumber: "", //待付款
-      // pendReceiveNumber: "", //待收货
-      // pendSendNumber: "", //待发货
+      pendEvaluateNumber: "", //已完成
+      pendPayNumber: "", //已下单
+      pendReceiveNumber: "", //待收货
+      pendSendNumber: "", //待取货
       cid: "",
       more: false,
-      leaderid: ""
+      leaderid: "",
+      leader: "",
+      topNav:[]
     };
   },
   components: {},
@@ -207,7 +209,14 @@ export default {
     });
     this.active = options.id;
     console.log(this.active);
-    this.leaderid = JSON.parse(wx.getStorageSync("leaderInfo")).leaderid;
+    if (wx.getStorageSync("leaderInfo")) {
+      this.leader = JSON.parse(wx.getStorageSync("leaderInfo"));
+      this.leaderid = JSON.parse(wx.getStorageSync("leaderInfo")).leaderid;
+      this.getNum();
+    }
+    if(wx.getStorageSync("user")){
+      this.cid=JSON.parse(wx.getStorageSync("user")).cid;
+    }
   },
   onShow() {
     this.list = [];
@@ -226,6 +235,45 @@ export default {
     }
   },
   methods: {
+    getLear(){
+          let parmas = {
+        cmd: "leaderInfo",
+        cid: this.cid
+      };
+      Request.postRequest(parmas).then(res => {
+        console.log(res);
+        this.leader=res;
+        this.getNum()
+      });
+    },
+    getNum() {
+      // if (this.leader != "") {
+        let arry=['客户已下单',"商家已发货","客户待取货","订单已完成"]
+        let res = this.leader;
+        this.pendEvaluateNumber = res.finishNum; //已完成
+        this.pendPayNumber = res.pendSendNum; //已下单
+        this.pendReceiveNumber = res.pendReceiveNum; //已发货
+        this.pendSendNumber = res.pendGetNum; //待取货
+      // }else{
+      //     this.getLear();
+      // }
+      this.pendPayNumber != 0
+        ? (arry[0] = arry[0] + "(" + this.pendPayNumber + ")")
+        : arry[0];
+  
+      this.pendReceiveNumber != 0
+        ? (arry[1] = arry[1] + "(" + this.pendReceiveNumber + ")")
+        : arry[1];
+            this.pendSendNumber != 0
+        ? (arry[2] = arry[2] + "(" + this.pendSendNumber + ")")
+        : arry[2];
+      this.pendEvaluateNumber != 0
+        ? (arry[3] = arry[3] + "(" + this.pendEvaluateNumber + ")")
+        : arry[3];
+      this.topNav = arry;
+
+     
+    },
     myOrder(status, page) {
       let myOrder = {
         cmd: "leardOrderList",
@@ -262,7 +310,7 @@ export default {
     //详情
     order(v) {
       console.log(v);
-      let obj={direct:1,id:v.id}
+      let obj = { direct: 1, id: v.id };
       wx.navigateTo({
         url: "/pages/order/shequorderdetial?id=" + JSON.stringify(obj)
       });
@@ -280,18 +328,18 @@ export default {
         cmd: "leaderConfirmReceive",
         orderId: v.id
       };
-      console.log(orderDetail)
+      console.log(orderDetail);
       Request.postRequest(orderDetail)
         .then(res => {
           console.log(res);
           if (res.result == 0) {
-            this.list=[];
+            this.list = [];
             this.myOrder(this.active, this.page);
             // this.gouserInfo();
           }
         })
         .catch(res => {});
-    },
+    }
   }
 };
 </script>
@@ -305,33 +353,34 @@ export default {
   width: 100%;
   height: 100%;
 }
-  .tuanpay {
-        overflow: hidden;
-        display: block;
-        width: 100%;
-        border-top: 1px solid #eee;
-        padding: 15px 0;
 
-        p {
-          text-align: right;
-          font-size: 13px;
-          line-height: 25px;
-          font-weight: bold;
-        }
+.tuanpay {
+  overflow: hidden;
+  display: block;
+  width: 100%;
+  border-top: 1px solid #eee;
+  padding: 15px 0;
 
-        div {
-          width: 1.7rem;
-          height: 0.6rem;
-          line-height: 0.6rem;
-          border-radius: 6px;
-          background: #73d242;
-          text-align: center;
-          font-size: 14px;
-          color: #fff;
-          float: right;
-          margin-top: 15px;
-        }
-      }
+  p {
+    text-align: right;
+    font-size: 13px;
+    line-height: 25px;
+    font-weight: bold;
+  }
+
+  div {
+    width: 1.7rem;
+    height: 0.6rem;
+    line-height: 0.6rem;
+    border-radius: 6px;
+    background: #73d242;
+    text-align: center;
+    font-size: 14px;
+    color: #fff;
+    float: right;
+    margin-top: 15px;
+  }
+}
 
 .van-tab__pane {
   min-height: 667px;

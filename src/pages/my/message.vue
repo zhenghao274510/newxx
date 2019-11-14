@@ -18,6 +18,7 @@
           </div>
         </li>
       </ul>
+      <div class="no" v-if="noMessage">暂无系统消息</div>
         <div class="loading" v-if="more">
             <span>没有更多了</span>
           </div>
@@ -36,7 +37,8 @@ export default {
       msg: [],
       more: false,
       cid: "",
-      leaderid: ""
+      leaderid: "",
+      noMessage:false
     };
   },
   components: {},
@@ -93,12 +95,15 @@ export default {
       Request.postRequest(datas)
         .then(res => {
           console.log(res);
-          if (res.result == 0) {
+          if (res.result == 0){
             this.totalPage = res.totalPage;
             for (let i in res.dataList) {
               this.msg.push(res.dataList[i]);
             }
             console.log(this.msg);
+            if(this.msg.length==0){
+              this.noMessage=true;
+            }
           }
         })
         .catch(res => {});
@@ -126,7 +131,7 @@ export default {
         });
       this.msg.splice(index, 1);
       if (this.msg.length == 0) {
-        this.more = true;
+        this.noMessage = true;
       }
     },
     //  "type":"0",//类型 0系统消息 1订单消息 2提现消息
@@ -166,6 +171,20 @@ export default {
 
 <style scoped lang="stylus" rel="stylesheet/stylus">
 .systom {
+  width: 100%;
+  height: 100%;
+  position: fixed;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 15px;
+  color: #333;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 25;
+}
+.no {
   width: 100%;
   height: 100%;
   position: fixed;

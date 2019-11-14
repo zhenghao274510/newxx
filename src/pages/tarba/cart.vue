@@ -1,15 +1,18 @@
 <template>
   <div class="contain" ref="list">
-    <ul class="head">
+    <ul class="head" >
       <li
         v-for="(item,index) in title "
         :key="index"
         :class="{'active':activeT==index}"
         @click="changactive(index)"
-      >{{item}}</li>
+      >
+        {{item.name}}
+        <span v-if="item.count!=0">{{item.count}}</span>
+      </li>
     </ul>
     <div class="bianji">
-      <div @click.stop="goEditor(shan)" v-if="yin==true">{{bianji}}</div>
+      <div @click.stop="goEditor(shan)" v-if="dataList.length!=0">{{bianji}}</div>
     </div>
 
     <div class="lists" v-if="wei==false">
@@ -52,7 +55,7 @@
       </div>
     </div>
 
-    <div class="finish" v-if="yin==true">
+    <div class="finish" v-if="dataList.length!=0">
       <div>
         <van-checkbox v-model="checked" checked-color="#07c160" @click.stop="allOrder">全选</van-checkbox>
       </div>
@@ -72,7 +75,15 @@ export default {
   data() {
     return {
       activeT: 0,
-      title: ["普通购物车", "拼团购物车", "拿货团购物车"],
+      // title: [
+      //   { name: "精品购物车", count: "" },
+      //   { name: "拼团购物车", count: "" },
+      //   { name: "拿货团购物车", count: "" }
+      // ],
+      title: [
+        { name: "精品购物车", count: "" },
+        { name: "拼团购物车", count: "" }
+      ],
       num: 3,
       active: 2,
       checked: false,
@@ -138,7 +149,8 @@ export default {
       } else {
         this.checked = false;
         this.yin = false;
-        this.gocarlist(this.cid);
+        this.gounum();
+        // this.gocarlist(this.cid);
       }
     }
   },
@@ -158,13 +170,17 @@ export default {
     changactive(ind) {
       this.activeT = ind;
       this.dataList = [];
-      this.gocarlist();
+      if (this.title[ind].count == 0) {
+        this.NOcart = true;
+      } else {
+        this.gocarlist();
+      }
       this.checked = false;
     },
 
     gitto(id) {
       console.log(id);
-      let obj={type:this.activeT,id:id}
+      let obj = { type: this.activeT, id: id };
       if (this.activeT == 1) {
         wx.navigateTo({
           url: "/pages/pintuan/gooddetailspin?id=" + JSON.stringify(obj)
@@ -186,20 +202,10 @@ export default {
       });
     },
     gocarlist() {
-      if (wx.getStorageSync("gocarlist")) {
-        this.dataList = JSON.parse(wx.getStorageSync("gocarlist"));
-        if (this.dataList.length > 0) {
-          this.NOcart = false;
-          this.yin = true;
-        } else {
-          this.NOcart = true;
-          this.yin = false;
-        }
-      }
       let golist = {
         cmd: "carList",
-        cid: this.cid,
-        type: this.activeT
+        cid: this.cid
+        // type: this.activeT
       };
       console.log(golist);
       Request.postRequest(golist)
@@ -207,6 +213,9 @@ export default {
           console.log(res);
           if (res.result == 0) {
             this.dataList = [];
+            if (this.dataList.length == 0) {
+              this.checked = false;
+            }
             for (let i in res.dataList) {
               let carlist = {};
               carlist.check = false;
@@ -237,30 +246,57 @@ export default {
               this.yin = false;
             }
             console.log(this.dataList);
-            wx.setStorageSync("gocarlist", JSON.stringify(this.dataList));
             // localStorage.setItem("gocarlist", JSON.stringify(this.dataList));
           }
         })
         .catch(res => {});
     },
-    // gounum() {
-    //   if (wx.getStorageSync("gouserInfo")) {
-    //     this.gou = JSON.parse(wx.getStorageSync("gouNUm"));
-    //   }
-    //   let datas = {
-    //     cmd: "cartCount",
-    //     cid: this.cid
-    //   };
-    //   Request.postRequest(datas)
-    //     .then(res => {
-    //       console.log(res);
-    //       if (res.result == 0) {
-    //         this.gou = res.totalCount;
-    //         // wx.setStorageSync("gouNUm", JSON.stringify(this.gou));
-    //       }
-    //     })
-    //     .catch(res => {});
-    // },
+    gounum() {
+      let datas = {
+        cmd: "cartCount",
+        cid: this.cid,
+        flag: "1"
+      };
+      Request.noLoading(datas)
+        .then(res => {
+          console.log(res);
+          if (res.result == 0) {
+            this.title[0].count = res.jingpin;
+            this.title[1].count = res.pint;
+            // this.title[2].count = res.naht;
+            if (res.jingpin != 0) {
+              this.activeT = 0;
+            } else {
+              if (res.pint != 0) {
+                this.activeT = 1;
+              } else {
+                this.activeT = 0;
+              }
+              //  if(res.naht!=0){
+              //   this.activeT = 2;
+              // }else
+            }
+
+            let result = res.totalCount + "";
+            if (res.totalCount == 0) {
+              this.NOcart = true;
+            } else {
+              this.gocarlist();
+            }
+            console.log(result);
+            wx.setTabBarBadge({
+              index: 3,
+              text: result
+            });
+          } else {
+            wx.showToast({
+              title: res.resultNode,
+              icon: "none"
+            });
+          }
+        })
+        .catch(res => {});
+    },
     allOrder() {
       this.checked = !this.checked;
       for (let i = 0; i < this.dataList.length; i++) {
@@ -348,14 +384,14 @@ export default {
       wx.setStorageSync("car", JSON.stringify(this.dataList));
 
       if (num > 0) {
-        if (this.activeT== 1) {
+        if (this.activeT == 1) {
           wx.navigateTo({
             url: "/pages/pintuan/pintuanSub"
           });
         } else {
-          let obj={direct:this.activeT}
+          let obj = { direct: this.activeT };
           wx.navigateTo({
-            url: "/pages/order/finishorder?id="+JSON.stringify(obj)
+            url: "/pages/order/finishorder?id=" + JSON.stringify(obj)
           });
         }
       } else if (num == 0) {
@@ -370,7 +406,7 @@ export default {
         cmd: "updateCar",
         cars: item.id + "-" + number
       };
-      Request.postRequest(updateCar)
+      Request.noLoading(updateCar)
         .then(res => {
           console.log(res);
         })
@@ -421,7 +457,7 @@ export default {
 }
 
 .kongbai {
-  height: 100%;
+  // height: 100%;
   width: 100%;
   position: relative;
 
@@ -434,7 +470,8 @@ export default {
 
   span {
     display: block;
-    margin: 270px auto;
+    margin:0 auto;
+    margin-top:270px;
     width: 200px;
     font-size: 20px;
     color: #fff;
@@ -447,30 +484,59 @@ export default {
 
 .contain {
   width: 100%;
-  height: 100%;
+  // height: 100%;
   padding-bottom: 100px;
   box-sizing: border-box;
 
   .head {
     width: 100%;
-    height: 50px;
+    padding: 20px 50px 0 50px;
+    box-sizing: border-box;
+    height: 70px;
     background: #fff;
     box-sizing: border-box;
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: space-around;
     position: fixed;
     top: 0;
     left: 0;
     z-index: 999;
 
     li {
-      padding: 5px 5px;
+      padding: 5px 10px;
       font-size: 14px;
       border: 1px solid #72D241;
       color: #72D241;
       height: 24px;
       line-height: 24px;
+      position: relative;
+      border-radius: 20px;
+
+      span {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 15px;
+        height: 15px;
+        line-height: 15px;
+        text-align: center;
+        border-radius: 50%;
+        color: #fff;
+        background: red;
+        display: block;
+        font-size: 14px;
+      }
+    }
+
+    .one {
+      border-radius: 5px 0 0 5px;
+      border-right: none;
+    }
+
+    .last {
+      border-radius: 0 5px 5px 0;
+      border-left: none;
     }
 
     .active {
@@ -484,7 +550,7 @@ export default {
     margin: 0 auto;
     font-size: 15px;
     text-align: right;
-    margin-top: 50px;
+    margin-top: 70px;
     overflow: hidden;
 
     div {

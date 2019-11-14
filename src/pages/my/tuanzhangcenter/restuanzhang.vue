@@ -5,36 +5,36 @@
       <ul class="star">
         <li>
           <span>小区名称：</span>
-          <input type="text" placeholder="请输入小区名称" v-model="neighbourhood" />
+          <input type="text" v-model="neighbourhood" focus placeholder="请输入小区名称"  />
         </li>
         <li>
           <span>小区地址：</span>
-          <input type="text" placeholder="请输入小区地址" v-model="address" />
+          <input type="text" v-model="address" placeholder="请输入小区地址" />
           <img src="/static/img/dingwei.png" alt @click="choseAddress" />
         </li>
         <div class="noplay">
           <span>详细地址：</span>
-          <input type="text" placeholder="请输入详细地址" v-model="addressDetials" />
+          <input type="text" v-model="addressDetials" placeholder="请输入详细地址"/>
         </div>
         <li>
           <span>团长昵称：</span>
-          <input type="text" placeholder="请输入团长昵称" v-model="nickname" />
+          <input type="text" v-model="nickname" placeholder="请输入团长昵称"  />
         </li>
         <li>
           <span>真实姓名：</span>
-          <input type="text" placeholder="请输入您的真实姓名" v-model="name" />
+          <input type="text" v-model="name" placeholder="请输入您的真实姓名"  />
         </li>
         <li>
           <span>联系方式：</span>
-          <input type="text" placeholder="请输入您的联系方式" v-model="phone" />
+          <input type="number" v-model="phone" placeholder="请输入您的联系方式"  />
         </li>
         <li>
           <span>身份证号：</span>
-          <input type="idcard" placeholder="请输入您的身份证号" v-model="idcard" />
+          <input type="idcard" v-model="idcard" placeholder="请输入您的身份证号"  />
         </li>
       </ul>
       <div class="persion">
-        <h4>身份证照片</h4>
+        <h4>证件照片</h4>
         <ul class="upimg">
           <li @click="upFile(0)">
             <div>
@@ -58,7 +58,7 @@
               <span v-else>+</span>
             </div>
 
-            <p>手持身份证照</p>
+            <p>营业执照</p>
           </li>
         </ul>
       </div>
@@ -85,6 +85,7 @@ import QQMapWX from "@/common/jsdk/qqmap-wx-jssdk";
 export default {
   data() {
     return {
+      focus:false,
       check: false,
       neighbourhood: "", //  小区名称
       address: "", // 小区地址
@@ -122,7 +123,7 @@ export default {
       this.province = adduser.province;
       this.city = adduser.city;
       this.town = adduser.town;
-      this.address = adduser.province + adduser.city + adduser.town;
+      this.address = adduser.add;
       console.log(adduser);
     }
   },
@@ -314,6 +315,10 @@ export default {
         .then(res => {
           let self = this;
           if (res.result == 0) {
+            wx.showToast({
+              title:"你的审核已提交,请耐心等待!",
+              icon:"none"
+            })
             console.log(res);
             self.$router.replace("/pages/my/tuanzhangcenter/shenhetijiao");
           } else {
@@ -358,6 +363,14 @@ export default {
 };
 </script>
 <style scoped lang="stylus">
+textarea{
+  position:absolute;
+  top:0;
+  left:0;
+  opacity:0;
+  height:358px;
+  z-index:0;
+}
 .button {
   padding: 0 5px;
   box-sizing: border-box;

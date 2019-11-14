@@ -63,7 +63,7 @@ export default {
           if (res.result == 0) {
             wx.showToast({
               title: "取消收藏商品成功",
-              icon:'none'
+              icon: "none"
             });
             // this.$commit('init')
             this.recommend.splice(k, 1);
@@ -75,11 +75,11 @@ export default {
 };
 </script>
 <style>
-  page{
-    width: 100%;
-    min-height: 100%;
-    background: rgb(250, 250, 250);
-  }
+page {
+  width: 100%;
+  min-height: 100%;
+  background: rgb(250, 250, 250);
+}
 </style>
 <style scoped lang="stylus" rel="stylesheet/stylus">
 .list {
@@ -139,8 +139,9 @@ export default {
         color: #333;
         overflow: hidden;
         text-overflow: ellipsis;
-        white-space: nowrap;
-        line-height: 14px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
       }
 
       .list-price {

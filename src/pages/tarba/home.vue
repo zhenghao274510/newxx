@@ -6,7 +6,7 @@
       <div class="head">
         <div class="city">
           <img src="/static/img/shouye-dingwei.png" alt />
-          <span v-if="active==0||active==1" @click="choseNearBy">{{current}}</span>
+          <span v-if="active==0" @click="choseNearBy">{{current}}</span>
           <span v-else @click="getCurLocation">{{city}}</span>
           <!-- <span v-else @click.stop="getCurLocation">{{leader.neighbor}}</span> -->
         </div>
@@ -37,7 +37,7 @@
         @change="changeIng"
       >
         <van-tab :title="v.name" v-for="(v,k) in cate1" :key="k">
-          <div class="swipe" v-if="showtarba">
+          <div class="swipe" v-if="showNav">
             <swipe :images="images"></swipe>
           </div>
 
@@ -49,7 +49,7 @@
             <discount
               :recommendList="list"
               :title="title"
-              v-if="cate1[active].name=='推荐'"
+              v-if="cate1[active].name=='精品推荐'"
               :direct="direct"
             ></discount>
 
@@ -102,6 +102,7 @@ import QQMapWX from "@/common/jsdk/qqmap-wx-jssdk";
 export default {
   data() {
     return {
+      showNav:false,
       current: "",
       active: 0,
       num: 0,
@@ -115,18 +116,16 @@ export default {
       dataList: [],
       page: 1,
       totalPage: 1,
-      loading: false,
       recommendList: [],
       list: [],
       id: 100,
       more: false,
       cid: "",
-      openId: "",
       qqMapSdk: "",
       direct: 100,
-      showtarba: false,
       leader: {},
-      fromid: ""
+      fromid: "",
+      timer: 0
     };
   },
   onShareAppMessage() {
@@ -134,7 +133,7 @@ export default {
       title: "山城乡鲜",
       desc:
         "山城乡鲜是一个专注于健康食品，包括水果、蔬菜、肉类、特产、海鲜、无公害及高品质的有机农产品等优质生鲜食材采购，并配套新鲜物流的服务平台。",
-      path: "" // 路径，传递参数到指定页面。
+      path: "/pages/tarba/home" // 路径，传递参数到指定页面。
     };
   },
   onLoad() {
@@ -146,7 +145,7 @@ export default {
     this.getCurLocation();
     this.qqMapSdk = new QQMapWX({
       key: "JYKBZ-NJNCU-GVDVC-B3RUD-AA5EH-3PFYT"
-    });
+    })
   },
   onShow() {
     if (wx.getStorageSync("leaderInfo")) {
@@ -157,7 +156,7 @@ export default {
     if (wx.getStorageSync("user")) {
       this.cid = JSON.parse(wx.getStorageSync("user")).cid;
       console.log(this.cid);
-      // this.getNum();
+      this.$api.getnum(this.cid);
     }
   },
   components: {
@@ -178,20 +177,6 @@ export default {
     }
   },
   methods: {
-    // getNum() {
-    //   let parmas = {
-    //     cmd: "cartCount",
-    //     cid: this.cid
-    //   };
-    //   Request.postRequest(parmas).then(res => {
-    //     let result=res.totalCount+''
-    //     console.log(result);
-    //     wx.setTabBarBadge({
-    //       index: 3,
-    //       text: result
-    //     });
-    //   });
-    // },
     getformid(e) {
       console.log(e);
       this.fromid = e.mp.detail.formId;
@@ -204,8 +189,8 @@ export default {
       for (let i = 0; i < cateTAB.length; i++) {
         if (id == cateTAB[i].id) {
           console.log(cateTAB[i]);
-          self.showtarba = true;
-          self.direct = 1;
+          self.direct = 0;
+          this.showNav=true;
           if (cateTAB[i].list) {
             self.datas = cateTAB[i].list.child;
             self.images = cateTAB[i].list.rotationChart;
@@ -242,8 +227,8 @@ export default {
 
           // }
         } else if (id == cateTAB[i].type) {
-          self.showtarba = false;
           self.direct = id;
+           this.showNav=false;
           let parmas = {
             cmd: "pinTuanPage",
             pageNow: self.page,
@@ -277,7 +262,7 @@ export default {
       //处理初始化页面数据缓存结束
 
       //打折商品调用
-      if (self.showtarba) {
+      if (this.showNav) {
         let discount = {
           cmd: "discountGoods",
           pageNow: 1
@@ -294,6 +279,7 @@ export default {
       }
     },
     diao() {
+      wx.removeStorageSync("cateTAB");
       if (wx.getStorageSync("cateTAB")) {
         this.cate1 = JSON.parse(wx.getStorageSync("cateTAB"));
         this.active = 0;
@@ -305,15 +291,19 @@ export default {
           uid: ""
         };
         console.log(datas);
-        Request.postRequest(datas)
+        Request.noLoading(datas)
           .then(res => {
             if (res.result == 0) {
               console.log(res);
-              this.cate1 = [
+                this.cate1 = [
                 { type: "100", name: "拼团" },
-                { type: "200", name: "拿货团" },
-                { id: "", name: "推荐" }
+                { id: "", name: "精品推荐" }
               ];
+              // this.cate1 = [
+              //   { type: "100", name: "拼团" },
+              //   { type: "200", name: "拿货团" },
+              //   { id: "", name: "精品推荐" }
+              // ];
               // let self=this;
               for (let i in res.dataList) {
                 this.cate1.push(res.dataList[i]);
@@ -380,7 +370,7 @@ export default {
       let datas = {};
       // if (self.page < self.totalPage) {
       // self.page += 1;
-      if (!this.showtarba) {
+      if (this.direct==100) {
         console.log("打折加载");
         datas = {
           cmd: "pinTuanPage",
@@ -448,13 +438,23 @@ export default {
       let ind = k.target.index;
       console.log(k);
       this.clear();
-      if (this.cate1[ind].id != undefined) {
-        this.id = this.cate1[ind].id;
+      if (this.timer == 1) {
+        return;
       } else {
-        this.id = this.cate1[ind].type;
+        this.timer = 1;
+        if (this.cate1[ind].id != undefined) {
+          this.id = this.cate1[ind].id;
+        } else {
+          this.id = this.cate1[ind].type;
+        }
+        this.initLoad(this.id);
       }
+      setTimeout(() => {
+        this.timer = 0;
+      }, 500);
+
       console.log(this.id);
-      this.initLoad(this.id);
+
       this.active = ind;
     },
     goSearch() {
@@ -503,7 +503,8 @@ export default {
     chakan(v) {
       console.log(v);
       console.log(this.id);
-      if (this.id == 100 || this.id == 200) {
+      // if (this.id == 100 || this.id == 200) 
+      if (this.id == 100 ){
         wx.navigateTo({
           url: "/pages/discount/pintuanList?id=" + this.id
         });
@@ -527,17 +528,20 @@ export default {
         wx.navigateTo({
           url: "/pages/pintuan/gooddetailspin?id=" + JSON.stringify(obj)
         });
-      } else if (this.direct == 200) {
-        obj.type = 2;
-        wx.navigateTo({
-          url: "/pages/Good/gooddetials?id=" + JSON.stringify(obj)
-        });
       } else {
         obj.type = 0;
         wx.navigateTo({
           url: "/pages/Good/gooddetials?id=" + JSON.stringify(obj)
         });
       }
+
+      // else if (this.direct == 200) {
+      //   obj.type = 2;
+      //   wx.navigateTo({
+      //     url: "/pages/Good/gooddetials?id=" + JSON.stringify(obj)
+      //   });
+      // } 
+     
     },
     //购物车图标
     shopcart(v) {
@@ -559,7 +563,7 @@ export default {
               wx.showToast({
                 title: "添加购物车成功"
               });
-              this.gounum();
+              this.getNum();
               // this.donghua = false;
             }
           })
@@ -717,7 +721,7 @@ page {
   justify-content: space-between;
   padding-left: 0.2rem;
   box-sizing: border-box;
-  background: rgb(114, 209, 65);
+  background: #72D241;
   z-index: 9999;
 
   .dian {

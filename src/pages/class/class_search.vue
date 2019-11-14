@@ -11,33 +11,16 @@
         :sticky="true"
       >
         <van-tab title="综合排序">
-          <!-- <van-pull-refresh v-model="isLoading" @refresh="onRefresh"> -->
           <recommendfen :recommend="list"></recommendfen>
-          <!-- </van-pull-refresh> -->
         </van-tab>
         <van-tab title="好评优先">
-          <!-- <van-pull-refresh v-model="isLoading" @refresh="onRefresh"> -->
           <recommendfen :recommend="list"></recommendfen>
-          <!-- </van-pull-refresh> -->
         </van-tab>
         <van-tab title="价格优先">
-          <!-- <van-list
-            v-model="loading"
-            :finished="finished"
-            finished-text="没有更多了"
-            @load="beginLoading"
-            :offset="10"
-            v-if="!show"
-          >-->
-          <!-- <van-pull-refresh v-model="isLoading" @refresh="onRefresh"> -->
           <recommendfen :recommend="list"></recommendfen>
-          <!-- </van-pull-refresh> -->
-          <!-- </van-list> -->
         </van-tab>
         <van-tab title="销量优先">
-          <!-- <van-pull-refresh v-model="isLoading" @refresh="onRefresh"> -->
           <recommendfen :recommend="list"></recommendfen>
-          <!-- </van-pull-refresh> -->
         </van-tab>
       </van-tabs>
     </div>
@@ -98,6 +81,7 @@ export default {
 
   methods: {
     initDta() {
+      this.show=false;
       let Category = {
         cmd: "selectGoodsByCategory",
         orderType: this.sorts,
