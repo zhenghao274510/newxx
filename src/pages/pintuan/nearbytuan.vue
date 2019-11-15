@@ -90,6 +90,9 @@ export default {
     }
   },
   mounted() {},
+   onShareAppMessage() {
+     return this.$share.share()
+   },
   //方法集合
   methods: {
     enter(k) {

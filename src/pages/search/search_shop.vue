@@ -102,6 +102,9 @@ export default {
       return this.list;
     }
   },
+   onShareAppMessage() {
+     return this.$share.share()
+   },
   methods: {
     //  初始页面 加载
     initDta(keywords) {

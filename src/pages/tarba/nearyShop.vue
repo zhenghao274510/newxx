@@ -33,6 +33,9 @@ export default {
   components: {
     shop
   },
+   onShareAppMessage() {
+     return this.$share.share()
+   },
   onLoad() {
     wx.setNavigationBarTitle({
       title: "附近商家"

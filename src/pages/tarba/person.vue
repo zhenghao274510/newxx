@@ -2,13 +2,10 @@
   <div class="contain">
     <div class="box">
       <div class="wrapper">
-        <form @submit="getformid" report-submit="true" class="addbtn">
           <div class="xiaoxi" @click="message">
-            <button formType="submit" class="formid"></button>
             <img src="/static/img/xiaoxi01.png" alt class="xiaoxi" />
             <b class="xiaob" v-if="xiaoshow==true"></b>
           </div>
-        </form>
         <div class="person" @click="goMsg">
           <div class="user">
             <span style="font-weight: 600;margin-bottom: 0.3rem;font-size:14px;">{{username}}</span>
@@ -169,7 +166,7 @@
             </li>
             <li class="two" @click="learCenter">
               <img src="/static/img/my_tuanzhang@2x.png" alt />
-              <span>团长入驻</span>
+              <span>{{text}}</span>
             </li>
             <li class="two">
               <a href="/pages/my/kefucenter">
@@ -210,44 +207,37 @@ export default {
       gou: 0,
       cid: "",
       formid: "",
-      first: true
+      first: true,
+      text: "团长入驻",
+      state:0
     };
   },
   onLoad() {
     wx.setNavigationBarTitle({
       title: "个人中心"
     });
-    this.xiaoshow=false;
+    this.xiaoshow = false;
+      if (wx.getStorageSync("user")) {
+      this.cid = JSON.parse(wx.getStorageSync("user")).cid;
+      if(this.cid!=undefined){
+        this.showText();
+      }
+    }
   },
   onShow() {
-    if (wx.getStorageSync("user")) {
-      this.cid = JSON.parse(wx.getStorageSync("user")).cid;
-
-      if (this.cid == undefined) {
+     if (this.cid == undefined) {
         this.nouser();
       } else {
         this.gouserInfo();
         this.infoList();
       }
-    }
+  
   },
   mounted() {},
-  components: {},
+   onShareAppMessage() {
+     return this.$share.share()
+   },
   methods: {
-    getformid(e) {
-      console.log(e);
-      this.formid = e.mp.detail.formId;
-      let parmas = {
-        cmd: "uploadFormid",
-        uid: this.cid,
-        fromid: this.formid
-      };
-      Request.postRequest(parmas)
-        .then(res => {
-          console.log(res);
-        })
-        .catch(res => {});
-    },
     nouser() {
       wx.showModal({
         title: "温馨提醒！",
@@ -265,25 +255,23 @@ export default {
       });
     },
     infoList() {
-      this.show=false;
+      this.show = false;
       let datas = {
         cmd: "infoList",
         cid: this.cid,
         pageNow: 1
       };
-      Request.postRequest(datas)
+      Request.noLoading(datas)
         .then(res => {
           console.log(res);
           if (res.result == 0) {
-            let num=0;
             for (var i in res.dataList) {
               if (res.dataList[i].read == 0) {
-                     num+=1;
-              } 
+               this.xiaoshow = true;
+               break;
+              }
             }
-            if(num>0){
-              this.xiaoshow = true;
-            }
+
           }
         })
         .catch(res => {});
@@ -297,7 +285,7 @@ export default {
         .then(res => {
           console.log(res);
           if (res.result == 0) {
-            wx.setStorageSync('order',JSON.stringify(res))
+            wx.setStorageSync("order", JSON.stringify(res));
             this.username = res.nickName; //昵称
             this.mobile = `${res.mobile.slice(0, 3)}****${res.mobile.slice(
               -4
@@ -311,54 +299,63 @@ export default {
         })
         .catch(res => {});
     },
-    learCenter() {
-      if (this.first) {
-        this.first = false;
-        let parmas = {
-          cmd: "leaderInfo",
-          cid: this.cid
-        };
-        Request.postRequest(parmas)
-          .then(res => {
-            console.log(res);
-            if (res.result == 0) {
-              this.first = true;
-              let num = Number(res.state);
-              switch (num) {
-                case 0:
-                  wx.showToast({
-                    title: "正在审核中!请稍等...",
-                    icon: "none"
-                  });
-                  break;
-                case 1:
-                wx.setStorageSync('leaderInfo',JSON.stringify(res));
-                setTimeout(()=>{
-                   wx.navigateTo({
-                    url: "/pages/my/tuanzhangcenter/tuanzhangcenter"
-                  });
-                },300)
-                 
-                  break;
-                case 2:
-                  wx.showToast({
-                    title: "你的审核没有通过，请重新填写个人信息",
-                    icon: "none"
-                  });
-                  setTimeout(() => {
-                    wx.navigateTo({
-                      url: "/pages/my/tuanzhangcenter/restuanzhang"
-                    });
-                  }, 500);
-                  break;
-                case 3:
-                  wx.navigateTo({
-                    url: "/pages/my/tuanzhangcenter/restuanzhang"
-                  });
-              }
+    showText() {
+      if(wx.getStorageSync("ISLEADER")){
+        this.text = "团长中心";
+        this.state=wx.getStorageSync("ISLEADER");
+      }else{
+           let parmas = {
+        cmd: "leaderInfo",
+        cid: this.cid
+      };
+      Request.noLoading(parmas)
+        .then(res => {
+          console.log(res);
+          if (res.result == 0) {
+            this.state = res.state;
+              wx.setStorageSync("ISLEADER",res.state);
+            if (res.state == 1) {
+              this.text = "团长中心";
+              wx.setStorageSync("leaderInfo", JSON.stringify(res));
             }
-          })
-          .catch(err => {});
+          }
+        })
+        .catch(err => {});
+      }
+    
+    },
+    learCenter() {
+      let num = Number(this.state);
+      switch (num) {
+        case 0:
+          wx.showToast({
+            title: "正在审核中!请稍等...",
+            icon: "none"
+          });
+          break;
+        case 1:
+          setTimeout(() => {
+            wx.navigateTo({
+              url: "/pages/my/tuanzhangcenter/tuanzhangcenter"
+            });
+          }, 30);
+
+          break;
+        case 2:
+          wx.showToast({
+            title: "你的审核没有通过，请重新填写个人信息",
+            icon: "none"
+          });
+          setTimeout(() => {
+            wx.navigateTo({
+              url: "/pages/my/tuanzhangcenter/restuanzhang"
+            });
+          }, 500);
+          break;
+        case 3:
+          wx.navigateTo({
+            url: "/pages/my/tuanzhangcenter/restuanzhang"
+          });
       }
     },
     goMsg() {
@@ -394,7 +391,7 @@ export default {
           wx.navigateTo({ url: "/pages/order/all?id=" + 4 });
           break;
         case 5:
-          wx.navigateTo({ url: "/pages/order/TuiShop?cid="+this.cid });
+          wx.navigateTo({ url: "/pages/order/TuiShop?cid=" + this.cid });
           break;
       }
     }
@@ -420,6 +417,7 @@ page {
 .van-tabbar-item {
   font-size: 16px;
 }
+
 ._van-tabbar-item__icon img {
   width: 36px !important;
   height: 36px !important;

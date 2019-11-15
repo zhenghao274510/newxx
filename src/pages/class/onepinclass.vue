@@ -79,6 +79,9 @@ export default {
       return this.list;
     }
   },
+   onShareAppMessage() {
+     return this.$share.share()
+   },
    onReachBottom() {
     console.log("触底");
     if (this.page < this.totalPage) {

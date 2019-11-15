@@ -250,12 +250,9 @@ export default {
   onShow() {
     this.orderDetail(this.id);
   },
-  // copy(ind){
-  //    switch(ind){
-  //      case 0:
-
-  //    }
-  // },
+   onShareAppMessage() {
+     return this.$share.share()
+   },
   methods: {
     shentui() {
       wx.navigateTo({

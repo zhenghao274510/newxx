@@ -1,14 +1,18 @@
 <template>
   <div class="contain" ref="list">
     <!-- <div class="head">分类</div> -->
-    <ul class="head">
-      <li
-        v-for="(item,index) in title "
-        :key="index"
-        :class="{'active':activeT==index,'one':index==0,'last':index==1}"
-        @click="changactive(index)"
-      >{{item}}</li>
-    </ul>
+
+    <div class="top">
+      <ul class="head">
+        <li
+          v-for="(item,index) in title "
+          :key="index"
+          :class="{'active':activeT==index}"
+          @click="changactive(index)"
+        >{{item}}</li>
+      </ul>
+    </div>
+
     <div class="cascad-menu" ref="cascadMenu" v-if="dataList!=[]">
       <scroll-view class="left-menu" scroll-y>
         <div class="left-menu-container">
@@ -41,7 +45,6 @@
         </div>
       </scroll-view>
     </div>
-    
   </div>
 </template>
 
@@ -57,7 +60,7 @@ export default {
       dataList: [],
       contentId: "",
       actindex: 0,
-      cid:'',
+      cid: "",
       navulHeight: 0, // 导航里ul高度
       navItemHeight: 0, // 每个导航高度
       listHeight: [], // foods内部块的高度
@@ -76,11 +79,11 @@ export default {
     }
     this.classify();
   },
-  onShow(){
-    if(wx.getStorageSync("user")){
-      this.cid=JSON.parse(wx.getStorageSync("user")).cid;
-      if(this.cid!=undefined){
-        this.$api.getnum(this.cid)
+  onShow() {
+    if (wx.getStorageSync("user")) {
+      this.cid = JSON.parse(wx.getStorageSync("user")).cid;
+      if (this.cid != undefined) {
+        this.$api.getnum(this.cid);
       }
     }
   },
@@ -113,9 +116,11 @@ export default {
 
     goGoods(e) {
       console.log(e);
-      let obj={
-        direct:this.activeT,name:e.name,id:e.id
-      }
+      let obj = {
+        direct: this.activeT,
+        name: e.name,
+        id: e.id
+      };
       if (this.activeT == 1) {
         wx.navigateTo({
           url: "/pages/class/onepinclass?id=" + JSON.stringify(obj)
@@ -155,20 +160,19 @@ export default {
       let scrollTop = e.target.scrollTop;
       // console.log(scrollTop)
       let length = this.listHeight.length;
-      if (scrollTop >=this.listHeight[length - 1] - this.contentHeight) {
-       this.actindex=length-1;
+      if (scrollTop >= this.listHeight[length - 1] - this.contentHeight) {
+        this.actindex = length - 1;
       } else if (scrollTop > 0 && scrollTop < this.listHeight[0]) {
         this.actindex = 0;
       }
       for (let i = 0; i < length; i++) {
         if (
-          scrollTop >this.listHeight[i - 1] &&
+          scrollTop > this.listHeight[i - 1] &&
           scrollTop < this.listHeight[i]
         ) {
           this.actindex = i;
         }
       }
-
     },
     calculateHeight() {
       //  创建查询对象
@@ -178,7 +182,7 @@ export default {
       query.selectAll(".right-item").boundingClientRect(rects => {
         console.log(rects);
         rects.forEach(rect => {
-          h += rect.height-40;
+          h += rect.height - 40;
           this.listHeight.push(h);
         });
         // console.log(this.listHeight);
@@ -186,7 +190,7 @@ export default {
       query.select(".right-menu").boundingClientRect(rect => {
         console.log(rect);
         this.contentHeight = rect.height;
-        console.log(this.contentHeight)
+        console.log(this.contentHeight);
       });
       query.select(".left-menu").boundingClientRect(rect => {
         this.navulHeight = rect.height;
@@ -217,37 +221,46 @@ page {
   // padding: 60px 0 0 0;
   box-sizing: border-box;
 
-  .head {
+  .top {
     width: 100%;
-    height: 50px;
-    box-sizing: border-box;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    height: 60px;
     position: fixed;
     top: 0;
     left: 0;
+    z-index: 999;
+    background: #fff;
 
-    li {
-      padding: 5px 20px;
-      font-size: 14px;
-      border: 1px solid #72D241;
-      color: #72D241;
-      height: 24px;
-      line-height: 24px;
-    }
-    .one{
-      border-radius:5px 0 0 5px;
-      border-right:none;
-    }
-    .last{
-      border-radius:0 5px 5px 0;
-      border-left:none;
-    }
+    .head {
+      width: 43%;
+      margin: 20px auto;
+      // width:100%;
+      // padding: 20px 50px 0 50px;
+      border: 1px solid #ccc;
+      border-radius: 20px;
+      box-sizing: border-box;
+      height: 33px;
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
 
-    .active {
-      background: #72D241;
-      color: #fff;
+      li {
+        // padding: 0 25px;
+        // border:1px solid transparent; 
+        flex:1;
+        font-size: 14px;
+        border-radius: 20px;
+        color: #72D241;
+        height: 33px;
+        line-height: 33px;
+        position: relative;
+        border-radius: 20px;
+        text-align: center;
+      }
+      .active {
+        background: #72D241;
+        color: #fff;
+      }
     }
   }
 
@@ -359,7 +372,7 @@ page {
       height: 100%;
       // margin-left: -50px;
       padding-left: 0.15rem;
-      margin-bottom:30px;
+      margin-bottom: 30px;
 
       .title {
         border-left: 4px solid rgb(114, 209, 65);
@@ -389,7 +402,7 @@ page {
             width: 1rem;
             height: 1rem;
             margin-bottom: 0.2rem;
-            border-radius:50%;
+            border-radius: 50%;
           }
         }
       }

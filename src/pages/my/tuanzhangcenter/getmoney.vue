@@ -92,6 +92,9 @@ export default {
       this.name = carInfo.name;
     }
   },
+   onShareAppMessage() {
+     return this.$share.share()
+   },
   methods: {
     sub() {
       console.log(1);

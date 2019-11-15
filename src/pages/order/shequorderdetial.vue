@@ -230,6 +230,9 @@ export default {
   },
   components: {},
   mounted() {},
+   onShareAppMessage() {
+     return this.$share.share()
+   },
   methods: {
     // copy(ind){
     //    switch(ind){

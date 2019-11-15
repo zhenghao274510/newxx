@@ -149,13 +149,12 @@
     "color": "#999",
     "backgroundColor": "#ffffff",
     "selectedColor": "#72D241",
-    "borderStyle": "white",
+    "borderStyle": "black",
     "list": [{
         "text": "首页",
         "pagePath": "pages/tarba/home",
         "iconPath": "static/tabs/shouye1.png",
         "selectedIconPath": "static/tabs/shouye2.png"
-       
       }, {
         "text": "分类",
         "pagePath": "pages/tarba/class",

@@ -218,6 +218,9 @@ export default {
       this.info();
     }
   },
+   onShareAppMessage() {
+     return this.$share.share()
+   },
   //方法集合
   methods: {
     enter() {

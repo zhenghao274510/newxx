@@ -74,6 +74,9 @@ export default {
     this.cid = options.cid;
     // this.myOrder(this.page);
   },
+   onShareAppMessage() {
+     return this.$share.share()
+   },
   onShow() {
     this.list = [];
     this.myOrder(this.page);

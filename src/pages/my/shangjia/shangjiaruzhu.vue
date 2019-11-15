@@ -38,6 +38,9 @@ export default {
     this.getshop();
     // this.dom = this.$refs.box.offsetHeight - 270
   },
+   onShareAppMessage() {
+     return this.$share.share()
+   },
   methods: {
     getshop() {
       let goCarlist = {

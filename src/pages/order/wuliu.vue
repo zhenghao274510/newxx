@@ -93,9 +93,10 @@ export default {
     this.kdniao(this.wlCode, this.wlNo);
   },
   mounted() {
-     
-   
   },
+   onShareAppMessage() {
+     return this.$share.share()
+   },
   methods: {
     kdniao(emsCode, emsNo) {
       let defaultAddress = {

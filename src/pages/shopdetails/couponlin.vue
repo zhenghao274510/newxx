@@ -76,6 +76,9 @@ export default {
   },
   components: {},
   mounted() {},
+   onShareAppMessage() {
+     return this.$share.share()
+   },
   methods: {
     formatTime(unixtime) {
       var date = new Date(unixtime);

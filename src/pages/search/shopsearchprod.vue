@@ -122,6 +122,9 @@ export default {
       return this.list;
     }
   },
+   onShareAppMessage() {
+     return this.$share.share()
+   },
   methods: {
     initDta(keywords) {
       this.list=[];

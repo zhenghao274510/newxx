@@ -1,16 +1,19 @@
 <template>
   <div class="contain" ref="list">
-    <ul class="head" >
-      <li
-        v-for="(item,index) in title "
-        :key="index"
-        :class="{'active':activeT==index}"
-        @click="changactive(index)"
-      >
-        {{item.name}}
-        <span v-if="item.count!=0">{{item.count}}</span>
-      </li>
-    </ul>
+    <div class="top">
+      <ul class="head">
+        <li
+          v-for="(item,index) in title "
+          :key="index"
+          :class="{'active':activeT==index}"
+          @click="changactive(index)"
+        >
+          {{item.name}}
+          <span v-if="item.count!=0">{{item.count}}</span>
+        </li>
+      </ul>
+    </div>
+
     <div class="bianji">
       <div @click.stop="goEditor(shan)" v-if="dataList.length!=0">{{bianji}}</div>
     </div>
@@ -446,10 +449,9 @@ export default {
 };
 </script>
 <style>
-/* page {
+page {
   width: 100%;
-  height: 100%;
-} */
+}
 </style>
 <style scoped lang="stylus" rel="stylesheet/stylus">
 .nomore {
@@ -470,8 +472,8 @@ export default {
 
   span {
     display: block;
-    margin:0 auto;
-    margin-top:270px;
+    margin: 0 auto;
+    margin-top: 270px;
     width: 200px;
     font-size: 20px;
     color: #fff;
@@ -485,63 +487,73 @@ export default {
 .contain {
   width: 100%;
   // height: 100%;
-  padding-bottom: 100px;
+  padding-bottom: 60px;
   box-sizing: border-box;
 
-  .head {
+  .top {
     width: 100%;
-    padding: 20px 50px 0 50px;
-    box-sizing: border-box;
-    height: 70px;
-    background: #fff;
-    box-sizing: border-box;
-    display: flex;
-    align-items: center;
-    justify-content: space-around;
+    height: 60px;
     position: fixed;
     top: 0;
     left: 0;
     z-index: 999;
+    background: #fff;
 
-    li {
-      padding: 5px 10px;
-      font-size: 14px;
-      border: 1px solid #72D241;
-      color: #72D241;
-      height: 24px;
-      line-height: 24px;
-      position: relative;
+    .head {
+      width: 54%;
+      margin: 20px auto;
+      // width:100%;
+      // padding: 20px 50px 0 50px;
+      border: 1px solid #ccc;
       border-radius: 20px;
+      box-sizing: border-box;
+      height: 33px;
+      box-sizing: border-box;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
 
-      span {
-        position: absolute;
-        top: 0;
-        right: 0;
-        width: 15px;
-        height: 15px;
-        line-height: 15px;
-        text-align: center;
-        border-radius: 50%;
-        color: #fff;
-        background: red;
-        display: block;
+      li {
+        padding: 0 15px;
         font-size: 14px;
+        border-radius: 20px;
+        color: #72D241;
+        height: 33px;
+        line-height: 33px;
+        position: relative;
+        border-radius: 20px;
+        text-align: center;
+
+        span {
+          position: absolute;
+          top: 0;
+          right: 0;
+          width: 15px;
+          height: 15px;
+          line-height: 15px;
+          text-align: center;
+          border-radius: 50%;
+          color: #fff;
+          background: red;
+          display: block;
+          font-size: 14px;
+        }
       }
-    }
 
-    .one {
-      border-radius: 5px 0 0 5px;
-      border-right: none;
-    }
+      .one {
+        border-radius: 5px 0 0 5px;
+        border-right: none;
+      }
 
-    .last {
-      border-radius: 0 5px 5px 0;
-      border-left: none;
-    }
+      .last {
+        border-radius: 0 5px 5px 0;
+        border-left: none;
+      }
 
-    .active {
-      background: #72D241;
-      color: #fff;
+      .active {
+        background: #72D241;
+        color: #fff;
+      }
     }
   }
 
@@ -564,6 +576,7 @@ export default {
     width: 100%;
     display: flex;
     flex-direction: column;
+    overflow: hidden;
 
     .uls {
       width: 100%;

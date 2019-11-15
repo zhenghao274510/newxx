@@ -53,6 +53,9 @@
 		mounted() {
 			this.service();
 		},
+		 onShareAppMessage() {
+     return this.$share.share()
+   },
 		methods: {
 			tell(){
 				let self=this;

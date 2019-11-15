@@ -61,6 +61,9 @@ export default {
     });
     this.dataList=[];
   },
+   onShareAppMessage() {
+     return this.$share.share()
+   },
   mounted() {
     this.cid=JSON.parse(wx.getStorageSync("user")).cid;
       this.evaluteList();

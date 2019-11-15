@@ -61,6 +61,9 @@ export default {
       this.more = true;
     }
   },
+   onShareAppMessage() {
+     return this.$share.share()
+   },
   //方法集合
   methods: {
     loading() {

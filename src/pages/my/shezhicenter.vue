@@ -76,6 +76,9 @@ export default {
   mounted() {
    
   },
+   onShareAppMessage() {
+     return this.$share.share()
+   },
   methods: {
     Update() {
       let goCarlist = {

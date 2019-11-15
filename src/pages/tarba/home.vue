@@ -204,7 +204,7 @@ export default {
             id: id,
             pageNow: self.page
           };
-          Request.postRequest(datas)
+          Request.noLoading(datas)
             .then(res => {
               console.log(res);
               if (res.result == 0) {
@@ -234,7 +234,7 @@ export default {
             pageNow: self.page,
             type: id
           };
-          Request.postRequest(parmas)
+          Request.noLoading(parmas)
             .then(res => {
               console.log(res);
               if (res.result == 0) {
@@ -296,7 +296,7 @@ export default {
             if (res.result == 0) {
               console.log(res);
                 this.cate1 = [
-                { type: "100", name: "拼团" },
+                { type: "100", name: "社区团购" },
                 { id: "", name: "精品推荐" }
               ];
               // this.cate1 = [
@@ -403,11 +403,6 @@ export default {
     clear() {
       this.page = 1;
       this.more = false;
-      this.list = [];
-      this.datas = [];
-      this.images = [];
-      this.dataList = [];
-      this.recommendList = [];
       this.totalPage = 1;
     },
     nouser() {
@@ -435,7 +430,8 @@ export default {
       }
     },
     changeIng(k) {
-      let ind = k.target.index;
+        let ind = k.target.index;
+         this.active = ind;
       console.log(k);
       this.clear();
       if (this.timer == 1) {
@@ -451,11 +447,11 @@ export default {
       }
       setTimeout(() => {
         this.timer = 0;
-      }, 500);
+      }, 100);
 
       console.log(this.id);
 
-      this.active = ind;
+     
     },
     goSearch() {
       this.$router.push("/pages/search/index");

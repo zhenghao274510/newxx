@@ -110,9 +110,9 @@ export default {
         .catch(res => {});
     },
     //  分享
-    onShareAppMessage(res) {
-      console.log(res);
-    },
+    onShareAppMessage() {
+     return this.$share.share()
+   },
 
     sort(k) {
       if (k.target.index == undefined) {

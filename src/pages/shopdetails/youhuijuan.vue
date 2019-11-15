@@ -78,6 +78,9 @@ export default {
       this.more = true;
     }
   },
+   onShareAppMessage() {
+     return this.$share.share()
+   },
   methods: {
     getCoupon(state, id) {
       let self = this;

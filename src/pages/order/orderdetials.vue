@@ -232,6 +232,9 @@ export default {
   onShow() {
     this.orderDetail(this.id);
   },
+   onShareAppMessage() {
+     return this.$share.share()
+   },
   methods: {
     // copy(ind){
     //   switch(ind){

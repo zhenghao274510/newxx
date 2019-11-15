@@ -92,6 +92,9 @@ export default {
       this.more = true;
     }
   },
+   onShareAppMessage() {
+     return this.$share.share()
+   },
   methods: {
     initDta() {
       // this.list=[];

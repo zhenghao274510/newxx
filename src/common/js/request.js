@@ -129,7 +129,9 @@ const http = {
     })
   },
   postFile(data, method = 'post') {
-   
+    wx.showLoading({
+      title: '上传中',
+    })
     return new Promise((resolve, reject) => {
       wx.uploadFile({
         url: encodeURI('https://m.scxxsx.com/api/uploadFile'),
@@ -141,20 +143,31 @@ const http = {
         },
         success: function (res) {
           // success
+          wx.hideLoading();
           resolve(res.data);
         },
         fail: function (error) {
+          wx.hideLoading();
           // fail
           reject(error);
         },
         complete: function () {
+          wx.hideLoading();
           // complete
         }
 
       })
 
     })
-  }
+  },
+  share(){
+    return  {
+     title: "山城乡鲜",
+     desc:
+       "山城乡鲜是一个专注于健康食品，包括水果、蔬菜、肉类、特产、海鲜、无公害及高品质的有机农产品等优质生鲜食材采购，并配套新鲜物流的服务平台。",
+     path: ''
+    }
+   }
 
 
 
